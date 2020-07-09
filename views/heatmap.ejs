@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+
+<% include ./headers/header %>
+
+<body>
+    
+        <div style="height:6%;line-height:60px;vertical-align:middle;">
+            <div>
+                보기모드 : <button class="cbutton" onclick="location.href='eventmap'">지 도</button>
+                          <button class="cbutton" onclick="location.href='heatmap'">히트맵</button>
+                          <button class="cbutton" onclick="location.href='timelinemap'">타임라인</button>
+                         
+            </div>
+            <!-- <div style="float:right;">
+                <button class="cbutton">키 퍼</button>
+                <button class="cbutton">감 시</button>
+                <button class="cbutton">교차로</button>
+            </div> -->
+        </div>
+
+        <!-- DIV pour la carte -->
+        <div id="map" style="height:94%;"></div>
+
+        <select id="heatmap-select" onchange="changeLayer()">
+            <option value="layer1">데이터 유형 1</option>
+            <option value="layer2">데이터 유형 2</option>
+            <option value="layer3">데이터 유형 3</option>
+        </select>
+    
+    <script type="text/javascript">        
+
+        var view = new ol.View({
+            projection: 'EPSG:4326',
+            center: [127.153789, 35.823685],
+            zoom: 18
+        });
+
+        var map = new ol.Map({
+            target: 'map',
+            layers: [                
+                new ol.layer.Tile({
+                    // A layer must have a title to appear in the layerswitcher
+                    title: 'VWorld 2D',
+                    // Again set this layer as a base layer
+                    type: 'base',
+                    visible: true,
+                    source: new ol.source.XYZ({
+                        url: 'http://xdworld.vworld.kr:8080/2d/Base/service/{z}/{x}/{y}.png'
+                    })
+                }),
+                new ol.layer.Tile({
+                    // A layer must have a title to appear in the layerswitcher
+                    title: 'VWorld 2D 위성지도',
+                    // Again set this layer as a base layer
+                    type: 'base',
+                    visible: false,
+                    source: new ol.source.XYZ({
+                        url: 'http://xdworld.vworld.kr:8080/2d/Satellite/service/{z}/{x}/{y}.jpeg'
+                    })
+                }),
+                new ol.layer.Tile({
+                    // A layer must have a title to appear in the layerswitcher
+                    title: 'OSM',
+                    // Again set this layer as a base layer
+                    type: 'base',
+                    visible: false,
+                    source: new ol.source.OSM()
+                })
+            ],
+            view: view
+        });
+        
+        var zoomslider = new ol.control.ZoomSlider();
+        map.addControl(zoomslider);   
+
+        var layerSwitcher = new ol.control.LayerSwitcher({
+            tipLabel: 'Légende', // Optional label for button
+            groupSelectStyle: 'children' // Can be 'children' [default], 'group' or 'none'
+        });
+        map.addControl(layerSwitcher);
+       
+       
+        
+
+    </script>
+
+
+</body>
+
+</html>

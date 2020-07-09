@@ -1,0 +1,313 @@
+{
+    "type": "FeatureCollection",
+    "features": [
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    127.156482,
+                    35.825027
+                ]
+            },
+            "properties": {
+                "ref": "APD0004328",
+                "cpost": "02440",
+                "region": "Picardie",
+                "dep": "2",
+                "commune": "Remigny",
+                "text": "Camouflage avec les moyens de fortune",
+                "author": "Opérateur D ; Brissy, Edouard",
+                "date": "1917/06/16",
+                "copy": "Ministère de la Culture (France) - Médiathèque de l'Architecture et du Patrimoine - Diffusion RMN",
+                "img": "http://www.culture.gouv.fr/Wave/image/memoire/1599/sap40_d0004328_v.jpg"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    127.151198,
+                    35.826955
+                ]
+            },
+            "properties": {
+                "ref": "APD0005719",
+                "cpost": "59220",
+                "region": "Nord-Pas-de-Calais",
+                "dep": "59",
+                "commune": "Denain",
+                "text": "Visite de la délégation de la Conférence de la paix à l'entrée",
+                "author": "Opérateur D ; Sélince",
+                "date": "1919/04/06",
+                "copy": "Ministère de la Culture (France) - Médiathèque de l'Architecture et du Patrimoine - Diffusion RMN",
+                "img": "http://www.culture.gouv.fr/Wave/image/memoire/1600/sap40_d0005719_v.jpg"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    127.145533,
+                    35.823858
+                ]
+            },
+            "properties": {
+                "ref": "APTH002327",
+                "cpost": "51600",
+                "region": "",
+                "dep": "51",
+                "commune": "Souain-Perthes-lès-Hurlus",
+                "text": "Prisonniers allemands au bord de la route",
+                "author": "Opérateur Théta (code armée, photographe)",
+                "date": "1918/10/09",
+                "copy": "Ministère de la Culture (France) - Médiathèque de l'architecture et du patrimoine - diffusion RMN",
+                "img": "http://www.culture.gouv.fr/Wave/image/memoire/1103/sap40_th002327_v.jpg"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    127.151584,
+                    35.827999
+                ]
+            },
+            "properties": {
+                "ref": "APTH002364",
+                "cpost": "51800",
+                "region": "",
+                "dep": "51",
+                "commune": "Ripont",
+                "text": "Emplacement du village",
+                "author": "Opérateur Théta (code armée, photographe)",
+                "date": "1918/10/02",
+                "copy": "Ministère de la Culture (France) - Médiathèque de l'architecture et du patrimoine - diffusion RMN",
+                "img": "http://www.culture.gouv.fr/Wave/image/memoire/1103/sap40_th002364_v.jpg"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    127.151327,
+                    35.820518
+                ]
+            },
+            "properties": {
+                "ref": "APTH002125",
+                "cpost": "02130",
+                "region": "",
+                "dep": "2",
+                "commune": "Vaux",
+                "text": "Prisonniers allemands faisant la moisson",
+                "author": "Opérateur Théta (code armée, photographe)",
+                "date": "1918/08/24",
+                "copy": "Ministère de la Culture (France) - Médiathèque de l'architecture et du patrimoine - diffusion RMN",
+                "img": "http://www.culture.gouv.fr/Wave/image/memoire/1103/sap40_th002125_v.jpg"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    127.161540,
+                    35.821561
+                ]
+            },
+            "properties": {
+                "ref": "APTH002382",
+                "cpost": "51490",
+                "region": "",
+                "dep": "51",
+                "commune": "Pontfaverger",
+                "text": "Ruines",
+                "author": "Opérateur Théta (code armée, photographe)",
+                "date": "1918/09/10",
+                "copy": "Ministère de la Culture (France) - Médiathèque de l'architecture et du patrimoine - diffusion RMN",
+                "img": "http://www.culture.gouv.fr/Wave/image/memoire/1103/sap40_th002382_v.jpg"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    127.153559,
+                    35.828173
+                ]
+            },
+            "properties": {
+                "ref": "APTH002231",
+                "cpost": "02220",
+                "region": "",
+                "dep": "2",
+                "commune": "Vesle",
+                "text": "Américains dans leur nouvelles positions",
+                "author": "Opérateur Théta (code armée, photographe)",
+                "date": "1918/09/04",
+                "copy": "Ministère de la Culture (France) - Médiathèque de l'architecture et du patrimoine - diffusion RMN",
+                "img": "http://www.culture.gouv.fr/Wave/image/memoire/1103/sap40_th002231_v.jpg"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    127.153429,
+                    35.819752
+                ]
+            },
+            "properties": {
+                "ref": "APTH002060",
+                "cpost": "02200",
+                "region": "",
+                "dep": "2",
+                "commune": "Soissons",
+                "text": "Façade ouest, état en 1918",
+                "author": "Opérateur Théta (code armée, photographe)",
+                "date": "1918/08/05",
+                "copy": "Ministère de la Culture (France) - Médiathèque de l'architecture et du patrimoine - diffusion RMN",
+                "img": "http://www.culture.gouv.fr/Wave/image/memoire/1103/sap40_th002060_v.jpg"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    127.159438,
+                    35.827581
+                ]
+            },
+            "properties": {
+                "ref": "APD0000842",
+                "cpost": "54700",
+                "region": "Lorraine",
+                "dep": "54",
+                "commune": "Sainte-Geneviève",
+                "text": "Poste de commandement",
+                "author": "Opérateur D ; Brissy, Edouard",
+                "date": "1915/09/10",
+                "copy": "Ministère de la Culture (France) - Médiathèque de l'Architecture et du Patrimoine - Diffusion RMN",
+                "img": "http://www.culture.gouv.fr/Wave/image/memoire/1597/sap40_d0000842_v.jpg"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    127.153387,
+                    35.826607
+                ]
+            },
+            "properties": {
+                "ref": "APD0000489",
+                "cpost": "51800",
+                "region": "Champagne-Ardenne",
+                "dep": "51",
+                "commune": "La Neuville-au-Pont",
+                "text": "Une rue avec des soldats",
+                "author": "Opérateur D ; Brissy, Edouard",
+                "date": "1915/07/15",
+                "copy": "Ministère de la Culture (France) - Médiathèque de l'Architecture et du Patrimoine - Diffusion RMN",
+                "img": "http://www.culture.gouv.fr/Wave/image/memoire/1596/sap40_d0000489_v.jpg"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    127.151413,
+                    35.828556
+                ]
+            },
+            "properties": {
+                "ref": "APTH002186",
+                "cpost": "51700",
+                "region": "",
+                "dep": "51",
+                "commune": "Dormans",
+                "text": "Lancement d'un pont suspendu sur la Marne",
+                "author": "Opérateur Théta (code armée, photographe)",
+                "date": "1918/08/29",
+                "copy": "Ministère de la Culture (France) - Médiathèque de l'architecture et du patrimoine - diffusion RMN",
+                "img": "http://www.culture.gouv.fr/Wave/image/memoire/1103/sap40_th002186_v.jpg"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    127.149910,
+                    35.819613
+                ]
+            },
+            "properties": {
+                "ref": "APD0000448",
+                "cpost": "55800",
+                "region": "Lorraine",
+                "dep": "55",
+                "commune": "Sommeilles",
+                "text": "Vue d'ensemble",
+                "author": "Opérateur D ; Brissy, Edouard",
+                "date": "1915/07/13",
+                "copy": "Ministère de la Culture (France) - Médiathèque de l'Architecture et du Patrimoine - Diffusion RMN",
+                "img": "http://www.culture.gouv.fr/Wave/image/memoire/1596/sap40_d0000448_v.jpg"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    127.156305,
+                    35.820030
+                ]
+            },
+            "properties": {
+                "ref": "APD0002182",
+                "cpost": "51800",
+                "region": "Champagne-Ardenne",
+                "dep": "51",
+                "commune": "Sivry-Ante",
+                "text": "Ante : nettoyage des mitrailleuses",
+                "author": "Opérateur D ; Brissy, Edouard",
+                "date": "1916/06/01",
+                "copy": "Ministère de la Culture (France) - Médiathèque de l'Architecture et du Patrimoine - Diffusion RMN",
+                "img": "http://www.culture.gouv.fr/Wave/image/memoire/1598/sap40_d0002182_v.jpg"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    127.148580,
+                    35.825598
+                ]
+            },
+            "properties": {
+                "ref": "APTH002310",
+                "cpost": "55220",
+                "region": "",
+                "dep": "51",
+                "commune": "Suippes",
+                "text": "Enlèvement des débris après l'explosion du train de munitions",
+                "author": "Opérateur Théta (code armée, photographe)",
+                "date": "1918/09/29",
+                "copy": "Ministère de la Culture (France) - Médiathèque de l'architecture et du patrimoine - diffusion RMN",
+                "img": "http://www.culture.gouv.fr/Wave/image/memoire/1103/sap40_th002310_v.jpg"
+            }
+        }
+    ]
+}
