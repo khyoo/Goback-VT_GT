@@ -8,9 +8,9 @@ var cors = require('cors');
 var testPageRouter = require('./routes/testPage');
 var testEventRouter = require('./routes/testEvent');
 
-var eventMapRouter = require('./routes/eventMap');
-var heatMapRouter = require('./routes/heatMap');
-var timelineMapRouter = require('./routes/timelineMap');
+var eventMapRouter = require('./routes/event_Map');
+var heatMapRouter = require('./routes/heat_Map');
+var timelineMapRouter = require('./routes/timeline_Map');
 
 var app = express();
 
