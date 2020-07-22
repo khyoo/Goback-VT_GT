@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="en">
+
+<% include ./headers/header %>
+
+<body>
+
+    <div style="height:6%;line-height:60px;vertical-align:middle;">
+        <div style="float:right;">
+            <button class="cbutton" onclick="send_kafkaMsg('1')">이벤트 1</button>
+            <button class="cbutton" onclick="send_kafkaMsg('2')">이벤트 2</button>
+            <button class="cbutton" onclick="send_kafkaMsg('3')">이벤트 3</button>
+
+        </div>
+    </div>
+
+    <!-- DIV pour la carte -->
+    <div id="map" style="height:94%;"></div>
+
+    <script type="text/javascript">
+
+        var view = new ol.View({
+            projection: 'EPSG:4326',
+            center: [106.764194, 10.854639],
+            // center: [127.153789, 35.823685],
+            zoom: 16
+        });
+
+        var map = new ol.Map({
+            target: 'map',
+            layers: [
+                new ol.layer.Tile({
+                    // A layer must have a title to appear in the layerswitcher
+                    title: 'VWorld 2D',
+                    // Again set this layer as a base layer
+                    type: 'base',
+                    visible: false,
+                    source: new ol.source.XYZ({
+                        url: 'http://xdworld.vworld.kr:8080/2d/Base/service/{z}/{x}/{y}.png'
+                    })
+                }),
+                new ol.layer.Tile({
+                    // A layer must have a title to appear in the layerswitcher
+                    title: 'VWorld 2D 위성지도',
+                    // Again set this layer as a base layer
+                    type: 'base',
+                    visible: false,
+                    source: new ol.source.XYZ({
+                        url: 'http://xdworld.vworld.kr:8080/2d/Satellite/service/{z}/{x}/{y}.jpeg'
+                    })
+                }),
+                new ol.layer.Tile({
+                    // A layer must have a title to appear in the layerswitcher
+                    title: 'OSM',
+                    // Again set this layer as a base layer
+                    type: 'base',
+                    visible: true,
+                    source: new ol.source.OSM()
+                })
+            ],
+            view: view
+        });
+        map.addLayer(vectorLayer);
+
+        var home = new ol.Overlay.Placemark({
+            // color: '#369',
+            // backgroundColor : 'yellow',
+            contentColor: '#000',
+
+        });
+        map.addOverlay(home);
+        home.show([106.764194, 10.854639]);
+
+
+        function flyTo(location, done) {
+            var duration = 2000;
+            var zoom = view.getZoom();
+            var parts = 2;
+            var called = false;
+            function callback(complete) {
+                --parts;
+                if (called) {
+                    return;
+                }
+                if (parts === 0 || !complete) {
+                    called = true;
+                    done(complete);
+                }
+            }
+            view.animate({
+                center: location,
+                duration: duration
+            }, callback);
+            view.animate({
+                zoom: zoom - 1,
+                duration: duration / 2
+            }, {
+                zoom: zoom,
+                duration: duration / 2
+            }, callback);
+        }
+
+        var popup = new ol.Overlay.Popup ({
+            popupClass: "default anim", //"tooltips", "warning" "black" "default", "tips", "shadow",
+            closeBox: false,
+            onclose: function(){ console.log("You close the box"); },
+            positioning: "bottom-center",
+            autoPan: true,
+            autoPanAnimation: { duration: 100 }
+        });
+        map.addOverlay(popup);
+
+        var socket = io.connect();
+
+        // 서버로부터 메시지 수신
+        socket.on('kafka_consumer', function (data) {
+            // console.log(data);
+            var payload = JSON.parse(data.value);
+
+            home.hide();
+
+            flyTo(payload.msg_loc, function() {});
+
+            var content = "";
+            content += "<div><img src='/images/"+ payload.img +"' width='350px' height='250px' /></div>";
+            content += "<div style='text-align:center;margin: 1em 1em 1em 1em;'>";
+            content += payload.msg_name;
+            content += "</div>";
+            popup.show(payload.msg_loc, content);             
+        });
+
+        var evt_01 = '{"msg_code": "EVT_001","msg_type": "RT","msg_name": "이벤트 테스트 1","msg_loc": [106.760540, 10.853545],"img": "car1.jpg"}';
+        var evt_02 = '{"msg_code": "EVT_001","msg_type": "RT","msg_name": "이벤트 테스트 2","msg_loc": [106.765661, 10.857595],"img": "car2.jpg"}';
+        var evt_03 = '{"msg_code": "EVT_001","msg_type": "RT","msg_name": "이벤트 테스트 3","msg_loc": [106.772865, 10.852145],"img": "car3.jpg"}';
+
+        function send_kafkaMsg(msgType, msgCode) {
+            var msg;
+
+            if (msgType == '1') {
+                msg = evt_01;
+            } else if (msgType == '2') {
+                msg = evt_02;
+            } else if (msgType == '3') {
+                msg = evt_03;
+            } 
+
+            // 서버로 메시지 송신
+            socket.emit("kafka_producer", msg);
+            console.log("메시지 송신 1");
+        }
+
+        var zoomslider = new ol.control.ZoomSlider();
+        map.addControl(zoomslider);
+
+        var layerSwitcher = new ol.control.LayerSwitcher({
+            tipLabel: 'Légende', // Optional label for button
+            groupSelectStyle: 'children' // Can be 'children' [default], 'group' or 'none'
+        });
+        map.addControl(layerSwitcher);
+        
+
+        var currZoom = map.getView().getZoom();
+      map.on('moveend', function(e) {
+          console.log(view.getResolution());
+        var newZoom = map.getView().getZoom();
+        if (currZoom != newZoom) {
+            console.log('zoom end, new zoom: ' + newZoom);
+            currZoom = newZoom;
+        }
+        });
+    </script>
+
+
+</body>
+
+</html>

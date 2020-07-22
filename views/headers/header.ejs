@@ -41,6 +41,16 @@
     <link href="https://unpkg.com/ol-contextmenu/dist/ol-contextmenu.min.css" rel="stylesheet">
     <script src="https://unpkg.com/ol-contextmenu"></script>
 
+  
+    <!--
+    <script src="https://maps.googleapis.com/maps/api/js?v=3&key=AIzaSyAughHIu045IvIPML4IKqj56T6OMh9Ugds"></script>
+    <link rel="stylesheet" href="/gis/ol3gm/ol3gm.css" type="text/css" />    
+    <script src="/gis/ol3gm/ol3gm.js"></script>
+    -->
+
+    <!-- WebSocket -->
+    <script src="/gis/socket.io/socket.io.js"></script>
+
     <style>
         .options i.standard,
         .options .fa {
@@ -142,5 +152,22 @@
             cursor: pointer;
             border-radius: 4px;
         }
+
+        /* popup style */
+        .ol-popup {
+            /* max-width:300px; */        
+            min-width:100px;
+            min-height:1em;
+        }
+        /* Image on popup */
+        .ol-popup img {        
+            margin: 1em 1em 1em 1em;
+            max-width: 500px;
+            max-height: 300px;
+        }
+        .ol-popup.default {
+            border-radius: 20px;
+        }
+
     </style>
 </head>

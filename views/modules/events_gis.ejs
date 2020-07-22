@@ -1,0 +1,1536 @@
+<script>
+
+    /*
+    
+    작성자 : 유기현
+    수정일자 : 2019-05-27
+    사용방법 : 메인지도화면 파일에서 현재 파일을 임포트 시키면 웹소켓으로 이벤트 처리 가능
+    
+
+
+    *******************************
+     함수 : 이벤트별 소켓 처리 함수 
+     설명 : KAFKA 이벤트 메시지에서 이벤트 ID 별로 파싱한 후 개별 이벤트 처리를 담당한다.
+     매개변수 : 없음
+     반환값 : 없음
+     AJAX 처리 : 없음
+    *******************************
+    socket.on('kafka_msg', function (data) {})
+    
+
+
+    *******************************
+     함수 : 이벤트 처리 함수
+     설명 : 이벤트 오탐 및 완료 처리를 담당한다.
+     매개변수 : evtKey, evtResult
+     반환값 : 없음
+     AJAX 처리 : 없음
+    *******************************
+    function evt_processing(evtKey, evtResult) {}
+    
+    */
+
+    var evt_group = new L.featureGroup();
+    //var evt_group = L.markerClusterGroup();
+
+    var socket = io.connect();
+
+
+    /** 
+     * 함수 : 이벤트별 소켓 처리 함수
+     * 설명 : KAFKA 이벤트 메시지에서 이벤트 ID 별로 파싱한 후 개별 이벤트 처리를 담당한다.
+     * 매개변수 : 없음
+     * 반환값 : 없음
+     * AJAX 처리 : 없음
+     */
+    socket.on('kafka_msg', function (data) {
+        var total_msg = JSON.parse(data);
+
+        if (total_msg.event_id.startsWith("EVENT")) {
+            console.log(data);
+        }
+
+        var evt_marker;
+        var evt_id = total_msg.event_id.toUpperCase();
+        var dev_code = total_msg.event_payload.hdrDeviceCode.value;
+        var evt_key = evt_id + dev_code + total_msg.event_datetime;
+
+        if (evt_id.startsWith("EVENT_")) {
+            // 이벤트 DB 저장
+            input_db(data);
+        }
+
+        if (evt_id == "EVENT_000007" || evt_id == "EVENT_000008") {
+            // 생활안전(EVENT_000007) 비상벨 이벤트
+            // 스마트가로등(EVENT_000008) 비상벨 이벤트
+
+            //console.log(data);
+
+            var ajax_url = '/rhea_gis/public_device_info_ptz_cctv';
+
+            $.ajax({
+                url: ajax_url,
+                headers: { "Content-Type": "application/json; charset=UTF-8" },
+                data: {
+                    device_code: dev_code
+                },
+                dataType: 'json',
+                type: "GET",
+                success: function (data) {
+                    //console.log("성공");
+
+                    var cctv_url = data.rows[0].device_desc;
+
+                    ajax_url = '/rhea_gis/spatial/device_poi_geom';
+
+                    $.ajax({
+                        url: ajax_url,
+                        headers: { "Content-Type": "application/json; charset=UTF-8" },
+                        data: { gid: data.rows[0].gid },
+                        dataType: 'json',
+                        async: false,
+                        type: "GET",
+                        success: function (data_sub) {
+                            //console.log(data_sub);
+
+                            var poi_coord = JSON.parse(data_sub.rows[0].st_asgeojson);
+                            evt_marker = L.marker([Number(poi_coord.coordinates[1]), Number(poi_coord.coordinates[0])], { pane: "tooltipPane", highlight: "temporary" });
+
+                            map.setView([Number(poi_coord.coordinates[1]), Number(poi_coord.coordinates[0])], 17);
+
+                            if (evt_group.getLayers().length >= event_display_count) {
+                                evt_group.removeLayer(evt_group.getLayers()[0]);
+                            }
+
+                            evt_group.addLayer(evt_marker);
+
+                            var popup_option = {
+                                maxWidth: 900,
+                                closeButton: true
+                            }
+
+                            var evt_html = "";
+
+                            evt_html = '<b><h4>';
+                            evt_html += total_msg.event_name;
+                            evt_html += '</h4></b><br>';
+                            evt_html += '<embed id="vms" width="540" height="340" src="';
+                            evt_html += cctv_url;
+                            evt_html += '"><br>';
+                            evt_html += '<h3>';
+                            evt_html += total_msg.event_message.split("/#")[3].split(":")[1];
+                            evt_html += '</h3>';
+                            evt_html += '<br>';
+                            evt_html += '<div style="text-align: center;">';
+                            evt_html += '<button type="button" class="btn btn-primary" data-dismiss="modal" style="width: 120px;" onclick="zoomIn_cctv(\'' + cctv_url + '\', \'ptz\');">PTZ 제어</button>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
+                            evt_html += '<button type="button" class="btn btn-primary" data-dismiss="modal" style="width: 120px;" onclick="evt_near_cctv(\'' + dev_code + '\', \'' + evt_key + '\');">주변 CCTV</button>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
+                            evt_html += '<button type="button" class="btn btn-default" data-dismiss="modal" style="width: 120px;" onclick="send_sms(\'eb\', \'' + data.rows[0].device_name + '\', \'' + total_msg.event_message.split("/")[3].split(":")[1].split("\n")[1] + '\', \'' + evt_key + '\', \'' + evt_group.getLayerId(evt_marker) + '\');">상황 전파</button>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
+                            evt_html += '<button type="button" class="btn btn-default" data-dismiss="modal" style="width: 120px;" onclick="evt_fault(\'' + evt_key + '\', \'' + evt_group.getLayerId(evt_marker) + '\');">오탐 완료</button>';
+                            evt_html += '</div>';
+
+                            evt_marker.bindPopup(evt_html, popup_option).openPopup();
+                        },
+                        error: function (data) {
+                            console.log("실패");
+                            //console.log(data);
+                        }
+                    });
+                },
+                error: function (data) {
+                    console.log("실패");
+                    //console.log(data);
+                }
+            });
+        } else if (evt_id == "EVENT_000009" || evt_id == "EVENT_000026" || evt_id == "EVENT_000027" || evt_id == "EVENT_000028" || evt_id == "EVENT_000029" || evt_id == "EVENT_000030" || evt_id == "EVENT_000031" || evt_id == "EVENT_000032" || evt_id == "EVENT_000033" || evt_id == "EVENT_000034" || evt_id == "EVENT_000035" || evt_id == "EVENT_000036" || evt_id == "EVENT_000037" || evt_id == "EVENT_000038" || evt_id == "EVENT_000039" || evt_id == "EVENT_000040") {
+            // 스마트가로등 영상분석(EVENT_000009) 싸움 이벤트
+            // 스마트가로등 영상분석(EVENT_000027) 배회 이벤트
+            // 스마트가로등 영상분석(EVENT_000029) 가상경로통과 이벤트
+            // 스마트가로등 영상분석(EVENT_000031) 멈춤 이벤트
+            // 스마트가로등 영상분석(EVENT_000033) 버려짐 이벤트
+            // 스마트가로등 영상분석(EVENT_000035) 쓰러짐 이벤트
+            // 스마트가로등 영상분석(EVENT_000037) 화재 이벤트
+            // 스마트가로등 영상분석(EVENT_000039) 위험수위 이벤트
+            // 생활안전 영상분석(EVENT_000026) 싸움 이벤트
+            // 생활안전 영상분석(EVENT_000028) 배회 이벤트
+            // 생활안전 영상분석(EVENT_000030) 가상경로통과 이벤트
+            // 생활안전 영상분석(EVENT_000032) 멈춤 이벤트
+            // 생활안전 영상분석(EVENT_000034) 버려짐 이벤트
+            // 생활안전 영상분석(EVENT_000036) 쓰러짐 이벤트
+            // 생활안전 영상분석(EVENT_000038) 화재 이벤트
+            // 생활안전 영상분석(EVENT_000040) 위험수위 이벤트                
+
+            //console.log(data);
+
+            var ajax_url = '/rhea_gis/public_device_info_ptz_cctv';
+
+            $.ajax({
+                url: ajax_url,
+                headers: { "Content-Type": "application/json; charset=UTF-8" },
+                data: {
+                    device_code: dev_code
+                },
+                dataType: 'json',
+                type: "GET",
+                success: function (data) {
+                    //console.log("성공");
+                    //console.log(data);
+                    //console.log(data.rows[0].device_desc);
+                    //console.log(data.rows[0].gid);
+                    var cctv_url;
+
+                    cctv_url = data.rows[0].device_desc;
+
+                    ajax_url = '/rhea_gis/spatial/device_poi_geom';
+
+                    $.ajax({
+                        url: ajax_url,
+                        headers: { "Content-Type": "application/json; charset=UTF-8" },
+                        data: { gid: data.rows[0].gid },
+                        dataType: 'json',
+                        async: false,
+                        type: "GET",
+                        success: function (data_sub) {
+                            //console.log(data_sub);
+
+                            var poi_coord = JSON.parse(data_sub.rows[0].st_asgeojson);
+                            evt_marker = L.marker([Number(poi_coord.coordinates[1]), Number(poi_coord.coordinates[0])], { highlight: "temporary" });
+
+                            map.setView([Number(poi_coord.coordinates[1]), Number(poi_coord.coordinates[0])], 16);
+
+                            if (evt_group.getLayers().length >= event_display_count) {
+                                evt_group.removeLayer(evt_group.getLayers()[0]);
+                            }
+
+                            evt_group.addLayer(evt_marker);
+
+                            var popup_option = {
+                                maxWidth: 900,
+                                closeButton: true
+                            }
+
+                            var evt_html = "";
+
+                            evt_html = '<b><h4>';
+                            evt_html += total_msg.event_name;
+                            evt_html += '</h4></b><br>';
+                            evt_html += '<embed id="vms" width="640" height="340" src="';
+                            evt_html += cctv_url;
+                            evt_html += '"><br>';
+                            evt_html += '<div class="div_popup_contents">';
+                            evt_html += '<h3>';
+                            evt_html += total_msg.event_message.split("/#")[3].split(":")[1];
+                            evt_html += '</h3>';
+                            evt_html += '</div>';
+                            evt_html += '<br>';
+                            evt_html += '<div style="text-align: center;">';                            
+                            evt_html += '<button type="button" class="btn btn-primary" data-dismiss="modal" style="width: 120px;" onclick="zoomIn_cctv(\'' + cctv_url + '\', \'ptz\');">PTZ 제어</button>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';                                                        
+                            evt_html += '<button type="button" class="btn btn-primary" data-dismiss="modal" style="width: 120px;" onclick="evt_near_cctv(\'' + dev_code + '\', \'' + evt_key + '\');">주변 CCTV</button>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
+                            evt_html += '<button type="button" class="btn btn-default" data-dismiss="modal" style="width: 120px;" onclick="send_sms(\'ca\', \'' + data.rows[0].device_name + '\', \'' + total_msg.event_message.split("/")[3].split(":")[1].split("\n")[1] + '\', \'' + evt_key + '\', \'' + evt_group.getLayerId(evt_marker) + '\');">상황 전파</button>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
+                            evt_html += '<button type="button" class="btn btn-default" data-dismiss="modal" style="width: 120px;" onclick="evt_fault(\'' + evt_key + '\', \'' + evt_group.getLayerId(evt_marker) + '\');">오탐 완료</button>';
+                            evt_html += '</div>';
+
+                            evt_marker.bindPopup(evt_html, popup_option).openPopup();
+                        },
+                        error: function (data) {
+                            console.log("실패");
+                            //console.log(data);
+                        }
+                    });
+                },
+                error: function (data) {
+                    console.log("실패");
+                    //console.log(data);
+                }
+            });
+        } else if (evt_id == "EVENT_000025" || evt_id == "EVENT_000075") {
+            // 수배차량 적발(EVENT_000025) 이벤트
+            // 체납차량 적발(EVENT_000075) 이벤트        
+
+            //console.log(data);
+
+            var prefix, postfix;
+
+            var car_num = total_msg.event_payload.carNum.value;
+            var file_name1 = total_msg.event_payload.fileName.value;
+
+            prefix = file_name1.split(car_num)[0].replace('_001_', '_002_');
+            postfix = file_name1.split(car_num)[1];
+            var file_name2 = prefix + car_num + postfix;
+
+            prefix = file_name1.split(car_num)[0].replace('_001_', '_003_');
+            var file_name3 = prefix + car_num + postfix;
+
+            var temp_time = total_msg.event_payload.hdrTimestamp.value.split('T');
+
+            var evt_time = new Date(temp_time[0] + " " + temp_time[1]);
+
+            var ftp_url = ftp_url_cr;
+            var ajax_url = '/rhea_gis/public_device_info_ptz_cctv';
+
+            $.ajax({
+                url: ajax_url,
+                headers: { "Content-Type": "application/json; charset=UTF-8" },
+                data: {
+                    device_code: dev_code
+                },
+                dataType: 'json',
+                type: "GET",
+                success: function (data) {
+                    //console.log("성공");
+
+                    ajax_url = '/rhea_gis/spatial/device_poi_geom';
+
+                    $.ajax({
+                        url: ajax_url,
+                        headers: { "Content-Type": "application/json; charset=UTF-8" },
+                        data: { gid: data.rows[0].gid },
+                        dataType: 'json',
+                        async: false,
+                        type: "GET",
+                        success: function (data_sub) {
+                            //console.log(data_sub);
+
+                            var poi_coord = JSON.parse(data_sub.rows[0].st_asgeojson);
+                            evt_marker = L.marker([Number(poi_coord.coordinates[1]), Number(poi_coord.coordinates[0])], { highlight: "permanent" });
+
+                            map.setView([Number(poi_coord.coordinates[1]), Number(poi_coord.coordinates[0])], 17);
+
+                            if (evt_group.getLayers().length >= event_display_count) {
+                                evt_group.removeLayer(evt_group.getLayers()[0]);
+                            }
+
+                            evt_group.addLayer(evt_marker);
+
+                            var popup_option = {
+                                maxWidth: 900,
+                                closeButton: true
+                            }
+
+                            var evt_html = "";
+
+                            evt_html = '<b><h4>';
+                            evt_html += total_msg.event_name;
+                            evt_html += '</h4></b><br>';
+                            evt_html += '<div>';
+                            evt_html += '<img src="';
+                            evt_html += ftp_url + file_name1;
+                            evt_html += '" width="250px" height="260px" />&nbsp;&nbsp;&nbsp;';
+                            evt_html += '<img src="';
+                            evt_html += ftp_url + file_name2;
+                            evt_html += '" width="250px" height="260px" />&nbsp;&nbsp;&nbsp;';
+                            evt_html += '<img src="';
+                            evt_html += ftp_url + file_name3;
+                            evt_html += '" width="250px" height="260px" />';
+                            evt_html += '</div>';
+                            evt_html += '<h3>';
+                            evt_html += total_msg.event_message.split("/#")[3].split(":")[1];
+                            evt_html += '</h3>';
+                            evt_html += '<br>';
+                            evt_html += '<h4>';
+                            evt_html += '차량 번호 : ';
+                            evt_html += car_num;
+                            evt_html += '<br>';
+                            evt_html += '발생 일시 : ';
+                            evt_html += evt_time.getFullYear() + '년 ' + (evt_time.getMonth() + 1) + '월 ' + evt_time.getDate() + '일 ' + evt_time.getHours() + '시 ' + evt_time.getMinutes() + '분 ';
+                            evt_html += '</h4>';
+                            evt_html += '<div style="text-align: center;">';
+                            evt_html += '<button type="button" class="btn btn-primary" data-dismiss="modal" style="width: 120px;" onclick="evt_near_cctv(\'' + dev_code + '\');">존 CCTV 보기</button>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
+                            evt_html += '<button type="button" class="btn btn-default" data-dismiss="modal" style="width: 120px;" onclick="send_sms(\'cr\', \'' + data.rows[0].device_name + '\', \'' + total_msg.event_message.split("/")[3].split(":")[1].split("\n")[1] + '\', \'' + evt_key + '\', \'' + evt_group.getLayerId(evt_marker) + '\');">상황 전파</button>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
+                            evt_html += '<button type="button" class="btn btn-default" data-dismiss="modal" style="width: 120px;" onclick="evt_fault(\'' + evt_key + '\', \'' + evt_group.getLayerId(evt_marker) + '\');">오탐 완료</button>';
+                            evt_html += '</div>';
+
+                            evt_marker.bindPopup(evt_html, popup_option).openPopup();
+                        },
+                        error: function (data) {
+                            console.log("실패");
+                            //console.log(data);
+                        }
+                    });
+                },
+                error: function (data) {
+                    console.log("실패");
+                    //console.log(data);
+                }
+            });
+        } else if (evt_id == "EVENT_000041") {
+            // 불법주정차 차량 감지(EVENT_000041) 이벤트
+
+            //console.log(data);
+
+            /*
+            var car_num = total_msg.event_payload.carNum.value;
+            var file_name1 = total_msg.event_payload.fileName.value;
+            var file_name2 = total_msg.event_payload.fileName.value.replace('C.', 'D.');
+            var file_name3 = total_msg.event_payload.fileName.value.replace('C.', 'A.');
+            var file_name4 = total_msg.event_payload.fileName.value.replace('C.', 'B.');
+            */
+
+            var car_num = total_msg.event_payload.carNum.value;
+            var file_name1 = total_msg.event_payload.fileName.value;
+            var file_name2 = total_msg.event_payload.fileName.value.replace('C.', 'D.');
+            var file_name3 = total_msg.event_payload.fileName.value.replace('C.', 'A.');
+            var file_name4 = total_msg.event_payload.fileName.value.replace('C.', 'B.');
+
+            var temp_time = total_msg.event_payload.hdrTimestamp.value.split('T');
+
+            var evt_time = new Date(temp_time[0] + " " + temp_time[1]);
+
+            var ftp_url = ftp_url_ip;
+            var ajax_url = '/rhea_gis/public_device_info_ptz_cctv';
+
+            $.ajax({
+                url: ajax_url,
+                headers: { "Content-Type": "application/json; charset=UTF-8" },
+                data: {
+                    device_code: dev_code
+                },
+                dataType: 'json',
+                type: "GET",
+                success: function (data) {
+                    //console.log("성공");
+
+                    ajax_url = '/rhea_gis/spatial/device_poi_geom';
+
+                    $.ajax({
+                        url: ajax_url,
+                        headers: { "Content-Type": "application/json; charset=UTF-8" },
+                        data: { gid: data.rows[0].gid },
+                        dataType: 'json',
+                        async: false,
+                        type: "GET",
+                        success: function (data_sub) {
+                            //console.log(data_sub);
+
+                            var poi_coord = JSON.parse(data_sub.rows[0].st_asgeojson);
+                            evt_marker = L.marker([Number(poi_coord.coordinates[1]), Number(poi_coord.coordinates[0])], { highlight: "temporary" });
+
+                            map.setView([Number(poi_coord.coordinates[1]), Number(poi_coord.coordinates[0])], 17);
+
+                            if (evt_group.getLayers().length >= event_display_count) {
+                                evt_group.removeLayer(evt_group.getLayers()[0]);
+                            }
+
+                            evt_group.addLayer(evt_marker);
+
+                            var popup_option = {
+                                maxWidth: 900,
+                                closeButton: true
+                            }
+
+                            var evt_html = "";
+
+                            evt_html = '<b><h4>';
+                            evt_html += total_msg.event_name;
+                            evt_html += '</h4></b><br>';
+                            evt_html += '<div>';
+                            evt_html += '<img src="';
+                            evt_html += ftp_url + file_name1;
+                            evt_html += '" width="500px" height="260px" />';
+                            //evt_html += '<img src="';
+                            //evt_html += ftp_url + file_name2;
+                            //evt_html += '" width="250px" height="260px" />';
+                            evt_html += '</div>';
+                            evt_html += '<h3>';
+                            evt_html += total_msg.event_message.split("/#")[3].split(":")[1];
+                            evt_html += '</h3>';
+                            evt_html += '<br>';
+                            evt_html += '<h4>';
+                            evt_html += '차량 번호 : ';
+                            evt_html += car_num;
+                            evt_html += '<br>';
+                            evt_html += '발생 일시 : ';
+                            evt_html += evt_time.getFullYear() + '년 ' + (evt_time.getMonth() + 1) + '월 ' + evt_time.getDate() + '일 ' + evt_time.getHours() + '시 ' + evt_time.getMinutes() + '분 ';
+                            evt_html += '</h4>';
+                            evt_html += '<div style="text-align: center;">';
+                            //evt_html += '<button type="button" class="btn btn-primary" data-dismiss="modal" style="width: 120px;" onclick="evt_near_cctv(\'' + dev_code + '\');">존 CCTV 보기</button>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
+                            evt_html += '<button type="button" class="btn btn-primary" data-dismiss="modal" style="width: 120px;" onclick="send_sms(\'cr\', \'' + data.rows[0].device_name + '\', \'' + total_msg.event_message.split("/")[3].split(":")[1].split("\n")[1] + '\', \'' + evt_key + '\', \'' + evt_group.getLayerId(evt_marker) + '\');">상황 전파</button>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
+                            evt_html += '<button type="button" class="btn btn-default" data-dismiss="modal" style="width: 120px;" onclick="evt_fault(\'' + evt_key + '\', \'' + evt_group.getLayerId(evt_marker) + '\');">오탐 완료</button>';
+                            evt_html += '</div>';
+
+                            evt_marker.bindPopup(evt_html, popup_option).openPopup();
+                        },
+                        error: function (data) {
+                            console.log("실패");
+                            //console.log(data);
+                        }
+                    });
+                },
+                error: function (data) {
+                    console.log("실패");
+                    //console.log(data);
+                }
+            });
+        } else if (evt_id == "EVENT_000044" || evt_id == "EVENT_000045" || evt_id == "EVENT_000046" || evt_id == "EVENT_000047" || evt_id == "EVENT_000058" || evt_id == "EVENT_000042" || evt_id == "EVENT_000043" || evt_id == "EVENT_000104" || evt_id == "EVENT_000105" || evt_id == "EVENT_000048" || evt_id == "EVENT_000077" || evt_id == "EVENT_0000078" || evt_id == "EVENT_000050" || evt_id == "EVENT_000079" || evt_id == "EVENT_000080" || evt_id == "EVENT_000052" || evt_id == "EVENT_000082" || evt_id == "EVENT_000083" || evt_id == "EVENT_000056" || evt_id == "EVENT_000085" || evt_id == "EVENT_0000086" || evt_id == "EVENT_000059" || evt_id == "EVENT_000087" || evt_id == "EVENT_000088" || evt_id == "EVENT_000061" || evt_id == "EVENT_00000090" || evt_id == "EVENT_000091" || evt_id == "EVENT_000063" || evt_id == "EVENT_000093" || evt_id == "EVENT_00000094") {
+            // 함체 이상(EVENT_000042) 이벤트
+
+            //console.log(data);
+
+            var dev_status = null;
+            var service_code = null;
+
+            if (evt_id == "EVENT_000048" || evt_id == "EVENT_000050" || evt_id == "EVENT_000056" || evt_id == "EVENT_000059" || evt_id == "EVENT_000061" || evt_id == "EVENT_000063") {
+                dev_status = total_msg.event_payload.status.value;
+            }
+            if (total_msg.event_payload.hdrServiceCode.value != undefined) {
+                service_code = total_msg.event_payload.hdrServiceCode.value;
+            }
+
+            var temp_time = total_msg.event_payload.hdrTimestamp.value.split('T');
+            //var evt_time = new Date(temp_time[0] + " " + temp_time[1]);
+            var evt_time = new Date();
+
+            ajax_url = '/rhea_gis/public_device_info';
+
+            var dev_name = "";
+
+            $.ajax({
+                url: ajax_url,
+                headers: { "Content-Type": "application/json; charset=UTF-8" },
+                data: { device_code: dev_code },
+                dataType: 'json',
+                type: "GET",
+                success: function (data) {
+                    dev_name = data.rows[0].DEVICE_NAME;
+
+                    ajax_url = '/rhea_gis/spatial/device_poi_geom';
+
+                    $.ajax({
+                        url: ajax_url,
+                        headers: { "Content-Type": "application/json; charset=UTF-8" },
+                        data: { gid: data.rows[0].GID },
+                        dataType: 'json',
+                        async: false,
+                        type: "GET",
+                        success: function (data_sub) {
+
+                            var poi_coord = JSON.parse(data_sub.rows[0].st_asgeojson);
+                            evt_marker = L.marker([Number(poi_coord.coordinates[1]), Number(poi_coord.coordinates[0])], { highlight: "temporary" });
+
+                            map.setView([Number(poi_coord.coordinates[1]), Number(poi_coord.coordinates[0])], 17);
+
+                            if (evt_group.getLayers().length >= event_display_count) {
+                                evt_group.removeLayer(evt_group.getLayers()[0]);
+                            }
+
+                            evt_group.addLayer(evt_marker);
+
+
+                            var popup_option = {
+                                maxWidth: 900,
+                                closeButton: true
+                            }
+
+                            var evt_html = "";
+
+                            evt_html = '<h4><b>';
+                            evt_html += total_msg.event_name;
+                            evt_html += '</b></h4>';
+                            evt_html += '<h4>';
+                            evt_html += '디바이스 명 : ';
+                            evt_html += dev_name;
+                            evt_html += '</h4><br>';
+                            evt_html += '<h3>';
+                            evt_html += total_msg.event_message.split("/")[3].split(":")[1];
+                            evt_html += '</h3>';
+                            evt_html += '<h4>';
+                            evt_html += evt_time.getFullYear() + '-' + (evt_time.getMonth() + 1) + '-' + evt_time.getDate() + ' ';
+                            evt_html += '<font size="5" color="blue">';
+                            evt_html += evt_time.getHours() + '시 ' + evt_time.getMinutes() + '분 ' + evt_time.getSeconds() + '초';
+                            evt_html += '</font>';
+                            evt_html += '</h4><br>';
+                            evt_html += '<div style="text-align: center;">';
+                            evt_html += '<button type="button" class="btn btn-primary" data-dismiss="modal" style="width: 120px;" onclick="evt_accept(\'' + evt_id + '\', \'' + dev_code + '\', \'' + service_code + '\', \'' + evt_key + '\', \'' + evt_group.getLayerId(evt_marker) + '\');">접 수</button>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
+                            evt_html += '<button type="button" class="btn btn-default" data-dismiss="modal" style="width: 120px;" onclick="evt_fault(\'' + evt_key + '\', \'' + evt_group.getLayerId(evt_marker) + '\');">오탐 완료</button>';
+                            evt_html += '</div>';
+
+                            evt_marker.bindPopup(evt_html, popup_option).openPopup();
+                        },
+                        error: function (data) {
+                            console.log("실패 1");
+                            //console.log(data);
+                        }
+                    });
+                },
+                error: function (data) {
+                    console.log("실패 2");
+                    //console.log(data);
+                }
+            });
+        } else if (evt_id.startsWith("ML_")) {
+            // 머신러닝 함체 온도 이상 감지(ML_001:지능형도보안전) 이벤트
+            // 머신러닝 함체 온도 이상 감지(ML_002:도로위험정보) 이벤트
+            // 머신러닝 함체 온도 이상 감지(ML_003:불법주정차정보) 이벤트
+            // 머신러닝 함체 온도 이상 감지(ML_004:스마트미디어월) 이벤트
+            // 머신러닝 함체 온도 이상 감지(ML_005:디지털사이니지) 이벤트
+            // 머신러닝 함체 온도 이상 감지(ML_006:스마트가로등) 이벤트
+            // 머신러닝 함체 온도 이상 감지(ML_007:생활안전CCTV) 이벤트
+            // 머신러닝 함체 온도 이상 감지(ML_008:차번인식CCTV) 이벤트
+
+            //console.log(data);
+
+            var dev_status = null;
+            var service_code = null;
+
+            var temp_time = total_msg.event_payload.hdrTimestamp.value.split('T');
+            var evt_time = new Date(temp_time[0] + " " + temp_time[1]);
+
+            var ajax_url = '/rhea_gis/public_device_info';
+
+            var dev_name = "";
+
+            $.ajax({
+                url: ajax_url,
+                headers: { "Content-Type": "application/json; charset=UTF-8" },
+                data: { device_code: dev_code },
+                dataType: 'json',
+                type: "GET",
+                success: function (data) {
+                    dev_name = data.rows[0].DEVICE_NAME;
+
+                    ajax_url = '/rhea_gis/spatial/device_poi_geom';
+
+                    $.ajax({
+                        url: ajax_url,
+                        headers: { "Content-Type": "application/json; charset=UTF-8" },
+                        data: { gid: data.rows[0].GID },
+                        dataType: 'json',
+                        async: false,
+                        type: "GET",
+                        success: function (data_sub) {
+
+                            var poi_coord = JSON.parse(data_sub.rows[0].st_asgeojson);
+                            evt_marker = L.marker([Number(poi_coord.coordinates[1]), Number(poi_coord.coordinates[0])], { highlight: "permanent" });
+
+                            map.setView([Number(poi_coord.coordinates[1]), Number(poi_coord.coordinates[0])], 17);
+
+                            if (evt_group.getLayers().length >= event_display_count) {
+                                evt_group.removeLayer(evt_group.getLayers()[0]);
+                            }
+
+                            evt_group.addLayer(evt_marker);
+
+                            var popup_option = {
+                                maxWidth: 900,
+                                closeButton: true
+                            }
+
+                            var evt_html = "";
+
+                            evt_html = '<h4><b>';
+                            evt_html += total_msg.event_name;
+                            evt_html += '</b></h4>';
+                            evt_html += '<h4>';
+                            evt_html += '디바이스 명 : ';
+                            evt_html += dev_name;
+                            evt_html += '</h4><br>';
+                            evt_html += '<h3>';
+                            evt_html += total_msg.event_message.split("/")[3].split(":")[1].split("\\n")[0];
+                            evt_html += '</h3>';
+                            evt_html += '<h3>';
+                            evt_html += total_msg.event_message.split("/")[3].split(":")[1].split("\\n")[1] + ' : <font color="red">' + total_msg.event_message.split("/")[3].split(":")[2] + '</font>';
+                            evt_html += '</h3>';
+                            evt_html += '<h4>';
+                            evt_html += evt_time.getFullYear() + '-' + (evt_time.getMonth() + 1) + '-' + evt_time.getDate() + ' ';
+                            evt_html += '<font size="5" color="blue">';
+                            evt_html += evt_time.getHours() + '시 ' + evt_time.getMinutes() + '분 ' + evt_time.getSeconds() + '초';
+                            evt_html += '</font>';
+                            evt_html += '</h4><br>';
+                            evt_html += '<div style="text-align: center;">';
+                            //evt_html += '<button type="button" class="btn btn-primary" style="width: 100px; height: 50px; font-size: 1.5em; font-weight: bold;" data-dismiss="modal" onclick="evt_accept(\'' + evt_id + '\', \'' + dev_code + '\', \'' + service_code + '\', \'' + evt_key + '\', \'' + evt_group.getLayerId(evt_marker) + '\');">접 수</button>';
+                            evt_html += '<button type="button" class="btn btn-primary" data-dismiss="modal" style="width: 120px;" onclick="send_sms(\'sn\', \'' + dev_name + '\', \'' + total_msg.event_message.split("/")[3].split(":")[1].split("\n")[1] + '\', \'' + evt_key + '\', \'' + evt_group.getLayerId(evt_marker) + '\');">상황 전파(SMS)</button>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
+                            evt_html += '<button type="button" class="btn btn-default" data-dismiss="modal" style="width: 120px;" onclick="evt_fault(\'' + evt_key + '\', \'' + evt_group.getLayerId(evt_marker) + '\');">오탐 완료</button>';
+                            evt_html += '</div>';
+
+                            evt_marker.bindPopup(evt_html, popup_option).openPopup();
+
+                            //console.log(evt_group.getLayerId(evt_marker));
+                            //console.log(evt_group.getLayers().length);
+                        },
+                        error: function (data) {
+                            console.log("실패");
+                            //console.log(data);
+                        }
+                    });
+                },
+                error: function (data) {
+                    console.log("실패");
+                    //console.log(data);
+                }
+            });
+        } else if (evt_id == "EVENT_000054" || evt_id == "EVENT_000055") {
+            // 사이니지 침수(EVENT_000054) 이벤트
+            // 사이니지 충격(EVENT_000055) 이벤트
+
+            //console.log(data);
+
+            var dev_name = "";
+
+            if (evt_id == "EVENT_000055" && (dev_code == "001-003-SN0006-D0001" || dev_code == '001-003-SN0004-D0001' || dev_code == '001-003-SN0008-D0001' || dev_code == '001-003-SN0010-D0001')) {
+
+            } else {
+                var temp_time = total_msg.event_payload.hdrTimestamp.value.split('T');
+                var evt_time = new Date(temp_time[0] + " " + temp_time[1]);
+
+                ajax_url = '/rhea_gis/public_device_info';
+
+                $.ajax({
+                    url: ajax_url,
+                    headers: { "Content-Type": "application/json; charset=UTF-8" },
+                    data: { device_code: dev_code },
+                    dataType: 'json',
+                    type: "GET",
+                    success: function (data) {
+                        dev_name = data.rows[0].DEVICE_NAME;
+
+                        ajax_url = '/rhea_gis/spatial/device_poi_geom';
+
+                        $.ajax({
+                            url: ajax_url,
+                            headers: { "Content-Type": "application/json; charset=UTF-8" },
+                            data: { gid: data.rows[0].GID },
+                            dataType: 'json',
+                            async: false,
+                            type: "GET",
+                            success: function (data_sub) {
+
+                                var poi_coord = JSON.parse(data_sub.rows[0].st_asgeojson);
+                                evt_marker = L.marker([Number(poi_coord.coordinates[1]), Number(poi_coord.coordinates[0])], { highlight: "permanent" });
+
+                                map.setView([Number(poi_coord.coordinates[1]), Number(poi_coord.coordinates[0])], 17);
+
+                                if (evt_group.getLayers().length >= event_display_count) {
+                                    evt_group.removeLayer(evt_group.getLayers()[0]);
+                                }
+
+                                evt_group.addLayer(evt_marker);
+
+                                var popup_option = {
+                                    maxWidth: 900,
+                                    closeButton: true
+                                }
+
+                                var evt_html = "";
+
+                                evt_html = '<h4><b>';
+                                evt_html += total_msg.event_name;
+                                evt_html += '</b></h4>';
+                                evt_html += '<h4>';
+                                evt_html += '디바이스 명 : ';
+                                evt_html += dev_name;
+                                evt_html += '</h4><br>';
+                                evt_html += '<h3>';
+                                evt_html += total_msg.event_message.split("/")[3].split(":")[1];
+                                evt_html += '</h3>';
+                                evt_html += '<h4>';
+                                evt_html += evt_time.getFullYear() + '-' + (evt_time.getMonth() + 1) + '-' + evt_time.getDate() + ' ';
+                                evt_html += '<font size="5" color="blue">';
+                                evt_html += evt_time.getHours() + '시 ' + evt_time.getMinutes() + '분 ' + evt_time.getSeconds() + '초';
+                                evt_html += '</font>';
+                                evt_html += '</h4><br>';
+                                evt_html += '<div style="text-align: center;">';
+                                //evt_html += '<button type="button" class="btn btn-primary" style="width: 100px; height: 50px; font-size: 1.5em; font-weight: bold;" data-dismiss="modal" onclick="evt_accept();">상황 전파(SMS)</button>';
+                                evt_html += '<button type="button" class="btn btn-primary" data-dismiss="modal" style="width: 120px;" onclick="send_sms(\'sn\', \'' + dev_name + '\', \'' + total_msg.event_message.split("/")[3].split(":")[1].split("\n")[1] + '\', \'' + evt_key + '\', \'' + evt_group.getLayerId(evt_marker) + '\');">상황 전파(SMS)</button>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
+                                evt_html += '<button type="button" class="btn btn-default" data-dismiss="modal" style="width: 120px;" onclick="evt_fault(\'' + evt_key + '\', \'' + evt_group.getLayerId(evt_marker) + '\');">오탐 완료</button>';
+                                evt_html += '</div>';
+
+                                evt_marker.bindPopup(evt_html, popup_option).openPopup();
+                                //console.log(evt_group.getLayerId(evt_marker));
+                                //console.log(evt_group.getLayers().length);
+                            },
+                            error: function (data) {
+                                console.log("실패");
+                                //console.log(data);
+                            }
+                        });
+                    },
+                    error: function (data) {
+                        console.log("실패");
+                        //console.log(data);
+                    }
+                });
+
+            }
+        } else if (evt_id == "EVENT_000001" || evt_id == "EVENT_000002" || evt_id == "EVENT_000003" || evt_id == "EVENT_000004" || evt_id == "EVENT_000005" || evt_id == "EVENT_000006" || evt_id == "EVENT_000011" || evt_id == "EVENT_000012" || evt_id == "EVENT_000013" || evt_id == "EVENT_000014" || evt_id == "EVENT_000015" || evt_id == "EVENT_000018" || evt_id == "EVENT_000019" || evt_id == "EVENT_000020" || evt_id == "EVENT_000021" || evt_id == "EVENT_000022" || evt_id == "EVENT_000023" || evt_id == "EVENT_000024" || evt_id == "EVENT_000066" || evt_id == "EVENT_000067" || evt_id == "EVENT_000068" || evt_id == "EVENT_000069" || evt_id == "EVENT_000070" || evt_id == "EVENT_000071" || evt_id == "EVENT_000072" || evt_id == "EVENT_000073" || evt_id == "EVENT_000074") {
+            // 일반 기상 이벤트 
+
+            //console.log(data);
+
+            var temp_time = total_msg.event_payload.hdrTimestamp.value.split('T');
+            var evt_time = new Date(temp_time[0] + " " + temp_time[1]);
+
+            var evt_html = '<center><font size="4em">';
+            //evt_html += total_msg.event_message.split("/")[3].split(":")[1].replace("\\n", "<br>");
+            evt_html += total_msg.event_message.split("/#")[3].split(":")[1].split("\\n").join("<br>");
+            evt_html += "</font></center>";
+
+            $("#div_weather").html(evt_html);
+            $("#dialog-event_top").dialog("open");
+        } else if (evt_id == "EVENT_000016" || evt_id == "EVENT_000017" || evt_id == "EVENT_000096" || evt_id == "EVENT_000107" || evt_id == "EVENT_000097" || evt_id == "EVENT_000098" || evt_id == "EVENT_000099" || evt_id == "EVENT_000100") {
+            // 존 단위 기상 이벤트 
+
+            //console.log(data);
+
+            var temp_time = total_msg.event_payload.hdrTimestamp.value.split('T');
+            var evt_time = new Date(temp_time[0] + " " + temp_time[1]);
+
+            var zone_info = '';
+
+            if (evt_id == "EVENT_000016" || evt_id == "EVENT_000099" || evt_id == "EVENT_000100") {
+                // 존 정보(106)
+                raster_alpha_accident_frequency.addTo(map);
+
+                evt_marker = L.marker([Number(35.83911), Number(128.689513)], { highlight: "permanent" });
+
+                map.setView([Number(35.83911), Number(128.689513)], 17);
+
+                zone_info = '106';
+            } else if (evt_id == "EVENT_000096" || evt_id == "EVENT_000097") {
+                // 존 정보(102)
+                raster_alpha_flooding.addTo(map);
+
+                evt_marker = L.marker([Number(35.840136), Number(128.686295)], { highlight: "permanent" });
+
+                map.setView([Number(35.840136), Number(128.686295)], 17);
+
+                zone_info = '102';
+            } else if (evt_id == "EVENT_000107" || evt_id == "EVENT_000098") {
+                // 존 정보(103)
+                raster_alpha_slope.addTo(map);
+
+                evt_marker = L.marker([Number(35.836362), Number(128.690457)], { highlight: "permanent" });
+
+                map.setView([Number(35.836362), Number(128.690457)], 17);
+
+                zone_info = '103';
+            } else if (evt_id == "EVENT_000017") {
+                // 존 정보(107)
+                raster_alpha_traffic_congestion.addTo(map);
+
+                evt_marker = L.marker([Number(35.836883), Number(128.684878)], { highlight: "permanent" });
+
+                map.setView([Number(35.836883), Number(128.684878)], 17);
+
+                zone_info = '107';
+            }
+
+            if (evt_group.getLayers().length >= event_display_count) {
+                evt_group.removeLayer(evt_group.getLayers()[0]);
+            }
+
+            evt_group.addLayer(evt_marker);
+
+            var popup_option = {
+                maxWidth: 400,
+                closeButton: true
+            }
+
+            var evt_html = '<center><font size="4em">';
+            //evt_html += total_msg.event_message.split("/#")[3].split(":")[1].replace("\\n", "<br>");
+            evt_html += total_msg.event_message.split("/#")[3].split(":")[1].split("\\n").join("<br>");
+            evt_html += "</font></center><br>";
+            evt_html += '<div style="text-align: center;">';
+            //evt_html += '<button type="button" class="btn btn-primary" data-dismiss="modal" style="width: 120px;" onclick="evt_near_cctv();">존 CCTV 보기</button>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
+            evt_html += '<button type="button" class="btn btn-default" data-dismiss="modal" style="width: 120px;" onclick="evt_complete(\'' + evt_group.getLayerId(evt_marker) + '\', \'' + zone_info + '\');">조치완료</button>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
+            evt_html += '<button type="button" class="btn btn-default" data-dismiss="modal" style="width: 120px;" onclick="evt_fault();">GIS 메모</button>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
+            evt_html += '<button type="button" class="btn btn-default" data-dismiss="modal" style="width: 120px;" onclick="evt_fault(\'' + evt_key + '\', \'' + evt_group.getLayerId(evt_marker) + '\');">오탐 완료</button>';
+            evt_html += '</div>';
+
+            evt_marker.bindPopup(evt_html, popup_option).openPopup();
+
+            //$("#div_weather").html(evt_html);
+            //$("#dialog-event_top").dialog("open");
+        } else if (evt_id == "EVENT_000106") {
+            // 자율주행 돌발 상황 이벤트
+
+            //console.log(data);
+
+            var lati = total_msg.event_payload.latitude.value;
+            var long = total_msg.event_payload.longitude.value;
+            var car_num = total_msg.event_payload.carNo.value;
+            var report_time = total_msg.event_payload.reportTime.value;
+
+            var temp_time = total_msg.event_payload.hdrTimestamp.value.split('T');
+            var evt_time = new Date(temp_time[0] + " " + temp_time[1]);
+
+
+            evt_marker = L.marker([Number(lati), Number(long)], { highlight: "permanent" });
+
+            map.setView([Number(lati), Number(long)], 17);
+
+            if (evt_group.getLayers().length >= event_display_count) {
+                evt_group.removeLayer(evt_group.getLayers()[0]);
+            }
+
+            evt_group.addLayer(evt_marker);
+
+            var popup_option = {
+                maxWidth: 900,
+                closeButton: true
+            }
+
+            var evt_html = "";
+            evt_html += total_msg.event_message.split("/#")[3].split(":")[1].split("\\n").join("<br>");
+            evt_html += '<br><br><div style="text-align: center;">';
+            //evt_html += '<button type="button" class="btn btn-primary" data-dismiss="modal" style="width: 120px;" onclick="evt_near_cctv2(\'001-002-SL0017-C0001\', false);">주변 CCTV</button>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
+            evt_html += '<button type="button" class="btn btn-primary" data-dismiss="modal" style="width: 120px;" onclick="evt_near_cctvs(\'' + lati + '\',\'' + long + '\', \'50\');">주변 CCTV</button>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
+            evt_html += '<button type="button" class="btn btn-primary" data-dismiss="modal" style="width: 120px;" onclick="evt_complete(\'' + evt_group.getLayerId(evt_marker) + '\');">조치완료</button>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
+            evt_html += '<button type="button" class="btn btn-default" data-dismiss="modal" style="width: 120px;" onclick="evt_fault(\'' + evt_key + '\', \'' + evt_group.getLayerId(evt_marker) + '\');">오탐 완료</button>';
+            //evt_html += '<button type="button" class="btn btn-default" data-dismiss="modal" style="width: 120px;" onclick="evt_fault();">GIS 메모</button>';
+            evt_html += '</div>';
+
+            evt_marker.bindPopup(evt_html, popup_option).openPopup();
+
+        } else if (evt_id == "EVENT_000010") {
+            // 도로위험정보 돌발상황 수신 이벤트
+
+            //console.log(data);
+
+            var lati = total_msg.event_payload.coordy.value;
+            var long = total_msg.event_payload.coordx.value;
+            var incidenttitle = total_msg.event_payload.incidenttitle.value;
+            var location = total_msg.event_payload.location.value;
+            var reportdate = total_msg.event_payload.reportdate.value;
+
+            var temp_time = total_msg.event_payload.hdrTimestamp.value.split('T');
+            var evt_time = new Date(temp_time[0] + " " + temp_time[1]);
+
+
+            evt_marker = L.marker([Number(lati), Number(long)], { highlight: "permanent" });
+
+            map.setView([Number(lati), Number(long)], 17);
+
+            if (evt_group.getLayers().length >= event_display_count) {
+                evt_group.removeLayer(evt_group.getLayers()[0]);
+            }
+
+            evt_group.addLayer(evt_marker);
+
+            var popup_option = {
+                maxWidth: 900,
+                closeButton: true
+            }
+
+            var evt_html = "";
+            evt_html += '<h3>';
+            evt_html += total_msg.event_message.split("/#")[3].split(":")[1].split("\\n").join("<br>");
+            evt_html += '</h3>';
+            evt_html += '<br>';
+            evt_html += '<h4>';
+            evt_html += incidenttitle;
+            evt_html += '</h4>';
+            evt_html += '<br>';
+            evt_html += '<h4>';
+            evt_html += '돌발위치 : ';
+            evt_html += location;
+            evt_html += '</h4>';
+            evt_html += '<h4>';
+            evt_html += '제보시간 : ';
+            evt_html += reportdate;
+            evt_html += '</h4>';
+            evt_html += '<br><br>';
+            evt_html += '<div style="text-align: center;">';
+            evt_html += '<button type="button" class="btn btn-primary" data-dismiss="modal" style="width: 120px;" onclick="evt_complete(\'' + evt_group.getLayerId(evt_marker) + '\');">조치완료</button>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
+            evt_html += '<button type="button" class="btn btn-default" data-dismiss="modal" style="width: 120px;" onclick="evt_fault();">GIS 메모</button>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
+            evt_html += '<button type="button" class="btn btn-default" data-dismiss="modal" style="width: 120px;" onclick="evt_fault(\'' + evt_key + '\', \'' + evt_group.getLayerId(evt_marker) + '\');">오탐 완료</button>';
+            evt_html += '</div>';
+
+            evt_marker.bindPopup(evt_html, popup_option).openPopup();
+
+        } else if (evt_id == "EVENT_000101" || evt_id == "EVENT_000102") {
+            // 도시재난시나리오 이벤트
+
+            //console.log(data);
+
+            var ajax_url = '/rhea_gis/public_device_info_ptz_cctv';
+
+            $.ajax({
+                url: ajax_url,
+                headers: { "Content-Type": "application/json; charset=UTF-8" },
+                data: {
+                    device_code: dev_code
+                },
+                dataType: 'json',
+                type: "GET",
+                success: function (data) {
+                    //console.log("성공");
+                    //console.log(data);
+                    //console.log(data.rows[0].device_desc);
+                    //console.log(data.rows[0].gid);
+                    var cctv_url;
+                    cctv_url = data.rows[0].device_desc;
+
+                    ajax_url = '/rhea_gis/spatial/device_poi_geom';
+
+                    $.ajax({
+                        url: ajax_url,
+                        headers: { "Content-Type": "application/json; charset=UTF-8" },
+                        data: { gid: data.rows[0].gid },
+                        dataType: 'json',
+                        async: false,
+                        type: "GET",
+                        success: function (data_sub) {
+                            //console.log(data_sub);
+
+                            var poi_coord = JSON.parse(data_sub.rows[0].st_asgeojson);
+                            evt_marker = L.marker([Number(poi_coord.coordinates[1]), Number(poi_coord.coordinates[0])], { highlight: "permanent" });
+
+                            map.setView([Number(poi_coord.coordinates[1]), Number(poi_coord.coordinates[0])], 17);
+
+                            if (evt_group.getLayers().length >= event_display_count) {
+                                evt_group.removeLayer(evt_group.getLayers()[0]);
+                            }
+
+                            evt_group.addLayer(evt_marker);
+
+                            var popup_option = {
+                                maxWidth: 600,
+                                closeButton: true
+                            }
+
+                            var evt_html = "";
+
+                            evt_html = '<b><h4>';
+                            evt_html += total_msg.event_name;
+                            evt_html += '</h4></b><br>';
+                            evt_html += '<embed id="vms" width="540" height="340" src="';
+                            evt_html += cctv_url;
+                            evt_html += '"><br>';
+                            evt_html += '<h3>';
+                            evt_html += total_msg.event_message.split("/#")[3].split(":")[1];
+                            evt_html += '</h3>';
+                            evt_html += '<br>';
+                            evt_html += '<div style="text-align: center;">';
+                            evt_html += '<button type="button" class="btn btn-primary" data-dismiss="modal" style="width: 120px;" onclick="zoomIn_cctv(\'' + cctv_url + '\', \'ptz\');">PTZ 제어</button>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
+                            evt_html += '<button type="button" class="btn btn-primary" data-dismiss="modal" style="width: 120px;" onclick="evt_near_cctv(\'' + dev_code + '\', \'' + evt_key + '\');">주변 CCTV</button>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
+                            evt_html += '<button type="button" class="btn btn-default" data-dismiss="modal" style="width: 120px;" onclick="send_sms(\'ca\', \'' + data.rows[0].device_name + '\', \'' + total_msg.event_message.split("/")[3].split(":")[1].split("\n")[1] + '\', \'' + evt_key + '\', \'' + evt_group.getLayerId(evt_marker) + '\');">상황 전파</button>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
+                            evt_html += '<button type="button" class="btn btn-default" data-dismiss="modal" style="width: 120px;" onclick="evt_fault(\'' + evt_key + '\', \'' + evt_group.getLayerId(evt_marker) + '\');">오탐 완료</button>';
+                            evt_html += '</div>';
+
+                            evt_marker.bindPopup(evt_html, popup_option).openPopup();
+
+                            //console.log(evt_group.getLayers().length);
+                        },
+                        error: function (data) {
+                            console.log("실패");
+                            //console.log(data);
+                        }
+                    });
+                },
+                error: function (data) {
+                    console.log("실패");
+                    //console.log(data);
+                }
+            });
+        } else if (evt_id == "EVENT_000103" || evt_id == "EVENT_000049" || evt_id == "EVENT_000051" || evt_id == "EVENT_000053" || evt_id == "EVENT_000057" || evt_id == "EVENT_000060" || evt_id == "EVENT_000062" || evt_id == "EVENT_000064") {
+            // 함체 전원이상 이벤트
+
+            //console.log(data);
+
+            var temp_time = total_msg.event_payload.hdrTimestamp.value.split('T');
+            var evt_time = new Date(temp_time[0] + " " + temp_time[1]);
+
+            ajax_url = '/rhea_gis/public_device_info';
+
+            var dev_name = "";
+
+            $.ajax({
+                url: ajax_url,
+                headers: { "Content-Type": "application/json; charset=UTF-8" },
+                data: { device_code: dev_code },
+                dataType: 'json',
+                type: "GET",
+                success: function (data) {
+                    dev_name = data.rows[0].DEVICE_NAME;
+
+                    ajax_url = '/rhea_gis/spatial/device_poi_geom';
+
+                    $.ajax({
+                        url: ajax_url,
+                        headers: { "Content-Type": "application/json; charset=UTF-8" },
+                        data: { gid: data.rows[0].GID },
+                        dataType: 'json',
+                        async: false,
+                        type: "GET",
+                        success: function (data_sub) {
+
+                            var poi_coord = JSON.parse(data_sub.rows[0].st_asgeojson);
+                            evt_marker = L.marker([Number(poi_coord.coordinates[1]), Number(poi_coord.coordinates[0])], { highlight: "permanent" });
+
+                            map.setView([Number(poi_coord.coordinates[1]), Number(poi_coord.coordinates[0])], 17);
+
+                            if (evt_group.getLayers().length >= event_display_count) {
+                                evt_group.removeLayer(evt_group.getLayers()[0]);
+                            }
+
+                            evt_group.addLayer(evt_marker);
+
+                            var popup_option = {
+                                maxWidth: 900,
+                                closeButton: true
+                            }
+
+                            var evt_html = "";
+
+                            evt_html = '<h4><b>';
+                            evt_html += total_msg.event_name;
+                            evt_html += '</b></h4>';
+                            evt_html += '<h4>';
+                            evt_html += '디바이스 명 : ';
+                            evt_html += dev_name;
+                            evt_html += '</h4><br>';
+                            evt_html += '<h3>';
+                            evt_html += total_msg.event_message.split("/")[3].split(":")[1];
+                            evt_html += '</h3>';
+                            evt_html += '<h4>';
+                            evt_html += evt_time.getFullYear() + '-' + (evt_time.getMonth() + 1) + '-' + evt_time.getDate() + ' ';
+                            evt_html += '<font size="5" color="blue">';
+                            evt_html += evt_time.getHours() + '시 ' + evt_time.getMinutes() + '분 ' + evt_time.getSeconds() + '초';
+                            evt_html += '</font>';
+                            evt_html += '</h4><br>';
+                            evt_html += '<div style="text-align: center;">';
+                            evt_html += '<button type="button" class="btn btn-primary" data-dismiss="modal" style="width: 120px;" onclick="send_sms(\'sn\', \'' + dev_name + '\', \'' + total_msg.event_message.split("/")[3].split(":")[1].split("\n")[1] + '\', \'' + evt_key + '\', \'' + evt_group.getLayerId(evt_marker) + '\');">상황 전파(SMS)</button>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
+                            evt_html += '<button type="button" class="btn btn-default" data-dismiss="modal" style="width: 120px;" onclick="evt_fault(\'' + evt_key + '\', \'' + evt_group.getLayerId(evt_marker) + '\');">오탐 완료</button>';
+                            evt_html += '</div>';
+
+                            evt_marker.bindPopup(evt_html, popup_option).openPopup();
+
+                            //console.log(evt_group.getLayerId(evt_marker));
+                            //console.log(evt_group.getLayers().length);
+                        },
+                        error: function (data) {
+                            console.log("실패 1");
+                            //console.log(data);
+                        }
+                    });
+                },
+                error: function (data) {
+                    console.log("실패 2");
+                    //console.log(data);
+                }
+            });
+
+        } else if (evt_id == "EVENT_000108" || evt_id == "EVENT_000081" || evt_id == "EVENT_000084" || evt_id == "EVENT_000089" || evt_id == "EVENT_000092" || evt_id == "EVENT_000095") {
+            // 카메라 이상 상태 이벤트
+
+            //console.log(data);
+
+            var temp_time = total_msg.event_payload.hdrTimestamp.value.split('T');
+            var evt_time = new Date(temp_time[0] + " " + temp_time[1]);
+
+            ajax_url = '/rhea_gis/public_device_info';
+
+            var dev_name = "";
+
+            $.ajax({
+                url: ajax_url,
+                headers: { "Content-Type": "application/json; charset=UTF-8" },
+                data: { device_code: dev_code },
+                dataType: 'json',
+                type: "GET",
+                success: function (data) {
+                    dev_name = data.rows[0].DEVICE_NAME;
+
+                    ajax_url = '/rhea_gis/spatial/device_poi_geom';
+
+                    $.ajax({
+                        url: ajax_url,
+                        headers: { "Content-Type": "application/json; charset=UTF-8" },
+                        data: { gid: data.rows[0].GID },
+                        dataType: 'json',
+                        async: false,
+                        type: "GET",
+                        success: function (data_sub) {
+
+                            var poi_coord = JSON.parse(data_sub.rows[0].st_asgeojson);
+                            evt_marker = L.marker([Number(poi_coord.coordinates[1]), Number(poi_coord.coordinates[0])], { highlight: "permanent" });
+
+                            map.setView([Number(poi_coord.coordinates[1]), Number(poi_coord.coordinates[0])], 17);
+
+                            if (evt_group.getLayers().length >= event_display_count) {
+                                evt_group.removeLayer(evt_group.getLayers()[0]);
+                            }
+
+                            evt_group.addLayer(evt_marker);
+
+                            var popup_option = {
+                                maxWidth: 900,
+                                closeButton: true
+                            }
+
+                            var evt_html = "";
+
+                            evt_html = '<h4><b>';
+                            evt_html += total_msg.event_name;
+                            evt_html += '</b></h4>';
+                            evt_html += '<h4>';
+                            evt_html += '디바이스 명 : ';
+                            evt_html += dev_name;
+                            evt_html += '</h4><br>';
+                            evt_html += '<h3>';
+                            evt_html += total_msg.event_message.split("/")[3].split(":")[1];
+                            evt_html += '</h3>';
+                            evt_html += '<h4>';
+                            evt_html += evt_time.getFullYear() + '-' + (evt_time.getMonth() + 1) + '-' + evt_time.getDate() + ' ';
+                            evt_html += '<font size="5" color="blue">';
+                            evt_html += evt_time.getHours() + '시 ' + evt_time.getMinutes() + '분 ' + evt_time.getSeconds() + '초';
+                            evt_html += '</font>';
+                            evt_html += '</h4><br>';
+                            evt_html += '<div style="text-align: center;">';
+                            evt_html += '<button type="button" class="btn btn-default" data-dismiss="modal" style="width: 120px;" onclick="send_sms(\'cr\', \'' + data.rows[0].device_name + '\', \'' + total_msg.event_message.split("/")[3].split(":")[1].split("\n")[1] + '\', \'' + evt_key + '\', \'' + evt_group.getLayerId(evt_marker) + '\');">상황 전파</button>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
+                            evt_html += '<button type="button" class="btn btn-default" data-dismiss="modal" style="width: 120px;" onclick="evt_fault(\'' + evt_key + '\', \'' + evt_group.getLayerId(evt_marker) + '\');">오탐 완료</button>';
+                            //evt_html += '<button type="button" class="btn btn-primary" style="width: 100px; height: 50px; font-size: 1.5em; font-weight: bold;" data-dismiss="modal" onclick="evt_accept(\'' + evt_id + '\', \'' + dev_code + '\', \'' + service_code + '\', \'' + evt_key + '\', \'' + evt_group.getLayerId(evt_marker) + '\');">접 수</button>';
+                            evt_html += '</div>';
+
+                            evt_marker.bindPopup(evt_html, popup_option).openPopup();
+
+                            //console.log(evt_group.getLayerId(evt_marker));
+                            //console.log(evt_group.getLayers().length);
+                        },
+                        error: function (data) {
+                            console.log("실패 1");
+                            //console.log(data);
+                        }
+                    });
+                },
+                error: function (data) {
+                    console.log("실패 2");
+                    //console.log(data);
+                }
+            });
+
+        } else if (evt_id == "EVENT_000065") {
+            // 충전기 이상 상태 이벤트
+
+            //console.log(data);
+
+            var dev_name = "";
+
+            var temp_time = total_msg.event_payload.hdrTimestamp.value.split('T');
+            var evt_time = new Date(temp_time[0] + " " + temp_time[1]);
+
+            ajax_url = '/rhea_gis/public_device_info';
+
+            $.ajax({
+                url: ajax_url,
+                headers: { "Content-Type": "application/json; charset=UTF-8" },
+                data: { device_code: dev_code },
+                dataType: 'json',
+                type: "GET",
+                success: function (data) {
+                    dev_name = data.rows[0].DEVICE_NAME;
+
+                    ajax_url = '/rhea_gis/spatial/device_poi_geom';
+
+                    $.ajax({
+                        url: ajax_url,
+                        headers: { "Content-Type": "application/json; charset=UTF-8" },
+                        data: { gid: data.rows[0].GID },
+                        dataType: 'json',
+                        async: false,
+                        type: "GET",
+                        success: function (data_sub) {
+
+                            var poi_coord = JSON.parse(data_sub.rows[0].st_asgeojson);
+                            evt_marker = L.marker([Number(poi_coord.coordinates[1]), Number(poi_coord.coordinates[0])], { highlight: "permanent" });
+
+                            map.setView([Number(poi_coord.coordinates[1]), Number(poi_coord.coordinates[0])], 17);
+
+                            if (evt_group.getLayers().length >= event_display_count) {
+                                evt_group.removeLayer(evt_group.getLayers()[0]);
+                            }
+
+                            evt_group.addLayer(evt_marker);
+
+                            var popup_option = {
+                                maxWidth: 900,
+                                closeButton: true
+                            }
+
+                            var evt_html = "";
+
+                            evt_html = '<h4><b>';
+                            evt_html += total_msg.event_name;
+                            evt_html += '</b></h4>';
+                            evt_html += '<h4>';
+                            evt_html += '디바이스 명 : ';
+                            evt_html += dev_name;
+                            evt_html += '</h4><br>';
+                            evt_html += '<h3>';
+                            evt_html += total_msg.event_message.split("/")[3].split(":")[1];
+                            evt_html += '</h3>';
+                            evt_html += '<h4>';
+                            evt_html += evt_time.getFullYear() + '-' + (evt_time.getMonth() + 1) + '-' + evt_time.getDate() + ' ';
+                            evt_html += '<font size="5" color="blue">';
+                            evt_html += evt_time.getHours() + '시 ' + evt_time.getMinutes() + '분 ' + evt_time.getSeconds() + '초';
+                            evt_html += '</font>';
+                            evt_html += '</h4><br>';
+                            evt_html += '<div style="text-align: center;">';
+                            //evt_html += '<button type="button" class="btn btn-primary" style="width: 100px; height: 50px; font-size: 1.5em; font-weight: bold;" data-dismiss="modal" onclick="evt_accept();">상황 전파(SMS)</button>';
+                            evt_html += '<button type="button" class="btn btn-primary" data-dismiss="modal" style="width: 120px;" onclick="send_sms(\'sn\', \'' + dev_name + '\', \'' + total_msg.event_message.split("/")[3].split(":")[1].split("\n")[1] + '\', \'' + evt_key + '\', \'' + evt_group.getLayerId(evt_marker) + '\');">상황 전파(SMS)</button>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
+                            evt_html += '<button type="button" class="btn btn-default" data-dismiss="modal" style="width: 120px;" onclick="evt_fault(\'' + evt_key + '\', \'' + evt_group.getLayerId(evt_marker) + '\');">오탐 완료</button>';
+                            evt_html += '</div>';
+
+                            evt_marker.bindPopup(evt_html, popup_option).openPopup();
+                        },
+                        error: function (data) {
+                            console.log("실패");
+                            //console.log(data);
+                        }
+                    });
+                },
+                error: function (data) {
+                    console.log("실패");
+                    //console.log(data);
+                }
+            });
+        } else if (evt_id == "EVENT_000109") {
+            // 스마트워킹 SOS(EVENT_000109) 이벤트
+
+            //console.log(data);
+
+            var lati = total_msg.event_payload.latitude.value;
+            var long = total_msg.event_payload.longitude.value;
+            var event_type = total_msg.event_payload.eventType.value;
+            var telephone_num = total_msg.event_payload.telephoneNo.value;
+            var nickname = total_msg.event_payload.nickName.value;
+            var report_time = total_msg.event_payload.reportTime.value;
+
+            var temp_time = total_msg.event_payload.hdrTimestamp.value.split('T');
+            var evt_time = new Date(temp_time[0] + " " + temp_time[1]);
+
+
+            evt_marker = L.marker([Number(lati), Number(long)], { highlight: "permanent" });
+
+            map.setView([Number(lati), Number(long)], 17);
+
+            if (evt_group.getLayers().length >= event_display_count) {
+                evt_group.removeLayer(evt_group.getLayers()[0]);
+            }
+
+            evt_group.addLayer(evt_marker);
+
+            var popup_option = {
+                maxWidth: 900,
+                closeButton: true
+            }
+
+            var evt_html = "";
+            evt_html += total_msg.event_message.split("/#")[3].split(":")[1].split("\\n").join("<br>");
+            evt_html += '<br><br><div style="text-align: center;">';
+            // evt_html += '<button type="button" class="btn btn-primary" data-dismiss="modal" style="width: 120px;" onclick="evt_near_cctvs(\'001-002-SL0017-C0001\', true);">CCTV 보기</button>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
+            evt_html += '<button type="button" class="btn btn-primary" data-dismiss="modal" style="width: 120px;" onclick="evt_near_cctvs(\'' + lati + '\',\'' + long + '\', \'100\');">주변 CCTV</button>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
+            evt_html += '<button type="button" class="btn btn-primary" data-dismiss="modal" style="width: 120px;" onclick="evt_complete(\'' + evt_group.getLayerId(evt_marker) + '\');">조치완료</button>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
+            evt_html += '<button type="button" class="btn btn-default" data-dismiss="modal" style="width: 120px;" onclick="evt_fault(\'' + evt_key + '\', \'' + evt_group.getLayerId(evt_marker) + '\');">오탐 완료</button>';
+            //evt_html += '<button type="button" class="btn btn-default" data-dismiss="modal" style="width: 120px;" onclick="evt_fault();">GIS 메모</button>';
+            evt_html += '</div>';
+
+            evt_marker.bindPopup(evt_html, popup_option).openPopup();
+        }
+    });
+
+
+
+    function evt_complete(layerId, zoneInfo) {
+
+        if (zoneInfo == "102") {
+            raster_alpha_flooding.remove();
+        } else if (zoneInfo == "103") {
+            raster_alpha_slope.remove();
+        } else if (zoneInfo == "106") {
+            raster_alpha_accident_frequency.remove();
+        } else if (zoneInfo == "107") {
+            raster_alpha_traffic_congestion.remove();
+        }
+
+        evt_group.removeLayer(layerId);
+    }
+
+
+    function evt_accept(evt_id, dev_code, service_code, evtKey, layerId) {
+        //console.log(dev_code);
+        //console.log(service_code);
+
+        rightSidebar.show();
+
+        $("#vtab_sensor").hide();
+        $("#vtab_domeCamera").hide();
+        $("#vtab_speedDome").hide();
+        $("#vtab_fixedCamera").hide();
+        $("#vtab_fixedCameraSet").hide();
+        $("#vtab_cameraSet").hide();
+        $("#vtab_beacon").hide();
+        $("#vtab_display").hide();
+        $("#vtab_chargerSet").hide();
+        $("#vtab_tag").hide();
+        $("#vtab_srack").show();
+
+        $("#right-tabs").tabs("option", "active", 10);
+
+        location.href = "#div_srack";
+
+        embed_tag = '<h2>';
+        embed_tag += '시설물 이미지';
+        embed_tag += '</h2>';
+        embed_tag += '<img src="/libs/gis/images/img_bx.jpg" width="300px" height="200px" />';
+        embed_tag += '<h2>';
+        embed_tag += '함체 정보';
+        embed_tag += '</h2>';
+        embed_tag += '<h4>';
+        embed_tag += '<li> 함체 온/습도 : ';
+        embed_tag += '<label for="temper"></label> / <label for="humi"></label>';
+        embed_tag += '</li>';
+        embed_tag += '<li> 함체 Fan 상태 : ';
+        embed_tag += '<label for="fanStatus"></label>';
+        embed_tag += '</li>';
+        embed_tag += '<li> 함체 도어 상태 : ';
+        embed_tag += '<label for="doorStatus"></label>';
+        embed_tag += '</li>';
+        //embed_tag += '<li> 함체 도어센서 상태 :';
+        //embed_tag += '<label for="doorSenStatus"></label>';
+        //embed_tag += '</li>';
+        embed_tag += '<li> 단말기 서버통신상태 : ';
+        embed_tag += '<label for="rackStatus"></label>';
+        embed_tag += '</li>';
+        embed_tag += '</h4>';
+        embed_tag += '<div style="text-align: right;">';
+        //embed_tag += '<button type="button" class="btn btn-default" data-dismiss="modal" onclick="ptz_control();">함체 리셋</button>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
+        embed_tag += '<button type="button" class="btn btn-default" data-dismiss="modal" onclick="openNewWindow(\'' + dev_code + '\');">함체 제어</button>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
+        embed_tag += '</div>';
+
+        $("#div_srack").html(embed_tag);
+
+        var ajax_url = null;
+
+        switch (service_code) {
+            case "IP":
+                ajax_url = dm_ip_srack_url;
+                break;
+            case "AS":
+                ajax_url = dm_as_srack_url;
+                break;
+            case "RI":
+                ajax_url = dm_ri_srack_url;
+                break;
+            case "MW":
+                ajax_url = dm_mw_srack_url;
+                break;
+            case "SN":
+                ajax_url = dm_sn_srack_url;
+                break;
+            case "LS":
+                ajax_url = dm_ls_srack_url;
+                break;
+            case "CR":
+                ajax_url = dm_cr_srack_url;
+                break;
+            case "SL":
+                ajax_url = dm_sl_srack_url;
+                break;
+        }
+
+        $.ajax({
+            url: ajax_url + dev_code,
+            headers: { "Content-Type": "application/json; charset=UTF-8" },
+            dataType: 'json',
+            type: "GET",
+            success: function (data) {
+                //console.log("성공");
+                //console.log(data);
+
+                $("label[for='temper']").html(data.payload[0].tp.value);
+                $("label[for='humi']").html(data.payload[0].hd.value);
+                $("label[for='fanStatus']").html(data.payload[0].fan.value == 'Y' ? '<font color="green">On</font>' : '<font color="red">Off</font>');
+                $("label[for='doorStatus']").html(data.payload[0].doorStatus.value == 'Y' ? '<font color="green">닫힘</font>' : '<font color="red">열림</font>');
+                $("label[for='rackStatus']").html(data.payload[0].status.value == 'Y' ? '<font color="green">정상</font>' : '<font color="red">다운</font>');
+
+                // 함체 Fan 이상 이벤트
+                if (evt_id == 'EVENT_000104' || evt_id == 'EVENT_000077' || evt_id == 'EVENT_000079' || evt_id == 'EVENT_000082' || evt_id == 'EVENT_000085' || evt_id == 'EVENT_000087' || evt_id == 'EVENT_000090' || evt_id == 'EVENT_000093') {
+                    $("label[for='fanStatus']").html('Off');
+                }
+
+                // 함체 도어 열림 이벤트
+                if (evt_id == 'EVENT_000105' || evt_id == 'EVENT_000078' || evt_id == 'EVENT_000080' || evt_id == 'EVENT_000083' || evt_id == 'EVENT_000086' || evt_id == 'EVENT_000088' || evt_id == 'EVENT_000091' || evt_id == 'EVENT_000094 ') {
+                    $("label[for='doorStatus']").html('<font color="red">열림</font>');
+                }
+
+                // 함체 네트워크 이상 이벤트
+                if (evt_id == 'EVENT_000043' || evt_id == 'EVENT_000048' || evt_id == 'EVENT_000050' || evt_id == 'EVENT_000052' || evt_id == 'EVENT_000056' || evt_id == 'EVENT_000059' || evt_id == 'EVENT_000061' || evt_id == 'EVENT_000063') {
+                    $("label[for='rackStatus']").html('<font color="red">다운</font>');
+                }
+            },
+            error: function (data) {
+                //console.log("실패");
+                //console.log(data);
+            }
+        });
+
+        // N:미확인, R:접수, P:처리, C:완료, F:오탐
+        var evt_result = 'R';
+        evt_processing(evtKey, evt_result);
+
+        evt_group.removeLayer(layerId);
+        //setTimeout(function () { evt_group.removeLayer(layerId); }, 30000);
+    }
+
+    // 이벤트 오탐 처리
+    function evt_fault(evtKey, layerId) {
+
+        // 이벤트 그룹 레이어 삭제
+        evt_group.removeLayer(layerId);
+
+        // N:미확인, R:접수, P:처리, C:완료, F:오탐
+        var evt_result = 'F';
+
+        // 이벤트 결과 처리
+        evt_processing(evtKey, evt_result);
+    }
+
+    /** 
+     * 함수 : 이벤트 처리 함수
+     * 설명 : 이벤트 오탐 및 완료 처리를 담당한다.
+     * 매개변수 : evtKey, evtResult
+     * 반환값 : 없음
+     * AJAX 처리 : 없음
+     */
+    function evt_processing(evtKey, evtResult) {
+
+        var ajax_url = '/rhea_gis/evt_history_result/update';
+
+        $.ajax({
+            url: ajax_url,
+            headers: { "Content-Type": "application/json; charset=UTF-8" },
+            dataType: 'json',
+            type: "GET",
+            data: { 'evtKey': evtKey, 'evtResult': evtResult },
+            success: function (data) {
+                //console.log("성공");
+                //console.log(data);                    
+            },
+            error: function (data) {
+                //console.log("실패");
+                //console.log(data);
+            }
+        });
+    }
+
+    function input_db(event_message) {
+        console.log("입력---------------");
+        var ajax_url = '/rhea_gis/evt_history/process';
+
+        $.ajax({
+            url: ajax_url,
+            type: "POST",
+            data: { msg: event_message },
+            success: function (data) {
+                console.log("성공---------------");
+                //console.log(data);                    
+            },
+            error: function (data) {
+                console.log("실패--------------");
+                //console.log(data);
+            }
+        });
+    }
+
+    evt_group.addTo(map);
+</script>

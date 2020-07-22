@@ -10,9 +10,13 @@
             보기모드 : <button class="cbutton" onclick="location.href='eventmap'">지 도</button>
             <button class="cbutton" onclick="location.href='heatmap'">히트맵</button>
             <button class="cbutton" onclick="location.href='timelinemap'">타임라인</button>
-            <button style="float:right;margin-top:10px;" class="cbutton"
-                onclick="location.href='testEvent'">테스트</button>
+
         </div>
+        <!-- <div style="float:right;">
+                <button class="cbutton">키 퍼</button>
+                <button class="cbutton">감 시</button>
+                <button class="cbutton">교차로</button>
+            </div> -->
     </div>
 
     <!-- DIV pour la carte -->
@@ -24,8 +28,8 @@
         var view = new ol.View({
             projection: 'EPSG:4326',
             center: [106.764194, 10.854639],
-            //center: [127.153789, 35.823685],
-            zoom: 14
+            // center: [127.153789, 35.823685],
+            zoom: 16
         });
 
         var map = new ol.Map({
@@ -62,83 +66,6 @@
             ],
             view: view
         });
-
-        // Array to cache image style
-        var styleCache = {};
-        // Vector style
-        function getFeatureStyle(feature, resolution, sel) {
-            var k = feature.get("img").match(/[^\\/]+$/)[0];
-            console.log(k);
-            var style = styleCache[k];
-            if (!style) {
-                styleCache[k] = style = new ol.style.Style({
-                    image: new ol.style.Photo({
-                        src: feature.get("img"),
-                        radius: 25,
-                        crop: 1,
-                        kind: "anchored",
-                        shadow: 1,
-                        onload: function () { vector.changed(); },
-                        stroke: new ol.style.Stroke({
-                            width: 1,
-                            color: '#fff'
-                        })
-                    })
-                });
-            }
-            return [style];
-        }
-
-        // GeoJSON layer
-        var vectorSource = new ol.source.Vector({
-            url: '/data/test1.geojson',
-            projection: 'EPSG:3857',
-            format: new ol.format.GeoJSON()
-        });
-
-        var vector = new ol.layer.Vector({
-            name: 'test-icon',
-            source: vectorSource,
-            // y ordering
-            renderOrder: ol.ordering.yOrdering(),
-            style: getFeatureStyle
-        });
-
-        map.addLayer(vector);
-
-        // GeoJSON layer
-        var vectorSource2 = new ol.source.Vector({
-            url: '/data/test2.geojson',
-            projection: 'EPSG:3857',
-            format: new ol.format.GeoJSON()
-        });
-
-        var vector2 = new ol.layer.Vector({
-            name: 'test-icon',
-            source: vectorSource2,
-            // y ordering
-            renderOrder: ol.ordering.yOrdering(),
-            style: getFeatureStyle
-        });
-
-        map.addLayer(vector2);
-
-         // GeoJSON layer
-         var vectorSource3 = new ol.source.Vector({
-            url: '/data/test3.geojson',
-            projection: 'EPSG:3857',
-            format: new ol.format.GeoJSON()
-        });
-
-        var vector3 = new ol.layer.Vector({
-            name: 'test-icon',
-            source: vectorSource3,
-            // y ordering
-            renderOrder: ol.ordering.yOrdering(),
-            style: getFeatureStyle
-        });
-
-        map.addLayer(vector3);
 
         var home = new ol.Overlay.Placemark({
             // color: '#369',
@@ -178,11 +105,11 @@
             }, callback);
         }
 
-        var popup = new ol.Overlay.Popup({
+        var popup = new ol.Overlay.Popup ({
             popupClass: "default anim", //"tooltips", "warning" "black" "default", "tips", "shadow",
             closeBox: false,
-            onclose: function () { console.log("You close the box"); },
-            positioning: "bottom-center",
+            onclose: function(){ console.log("You close the box"); },
+            positioning: $("#positioning").val(),
             autoPan: true,
             autoPanAnimation: { duration: 100 }
         });
@@ -197,14 +124,14 @@
 
             home.hide();
 
-            flyTo(payload.msg_loc, function () { });
+            flyTo(payload.msg_loc, function() {});
 
             var content = "";
-            content += "<div><img src='/images/" + payload.img + "' width='350px' height='250px' /></div>";
+            content += "<div><img src='/images/"+ payload.img +"' width='350px' height='250px' /></div>";
             content += "<div style='text-align:center;margin: 1em 1em 1em 1em;'>";
             content += payload.msg_name;
             content += "</div>";
-            popup.show(payload.msg_loc, content);
+            popup.show(payload.msg_loc, content);             
         });
 
         var zoomslider = new ol.control.ZoomSlider();
@@ -215,51 +142,8 @@
             groupSelectStyle: 'children' // Can be 'children' [default], 'group' or 'none'
         });
         map.addControl(layerSwitcher);
+        
 
-        var currZoom = map.getView().getZoom();
-        if (currZoom < 15) {
-            vector.setVisible(false);
-        } else {
-            vector.setVisible(true);
-        }
-
-        if (currZoom < 16) {
-            vector2.setVisible(false);
-        } else {
-            vector2.setVisible(true);
-        }
-
-        if (currZoom < 17) {
-            vector3.setVisible(false);
-        } else {
-            vector3.setVisible(true);
-        }
-
-        map.on('moveend', function (e) {
-            // console.log(view.getResolution());
-            var newZoom = map.getView().getZoom();
-            if (currZoom != newZoom) {
-                console.log('zoom end, new zoom: ' + newZoom);
-                currZoom = newZoom;
-                if (currZoom < 15) {
-                    vector.setVisible(false);
-                } else {
-                    vector.setVisible(true);
-                }
-
-                if (currZoom < 16) {
-                    vector2.setVisible(false);
-                } else {
-                    vector2.setVisible(true);
-                }
-
-                if (currZoom < 17) {
-                    vector3.setVisible(false);
-                } else {
-                    vector3.setVisible(true);
-                }
-            }
-        });
     </script>
 
 

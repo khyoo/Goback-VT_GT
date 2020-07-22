@@ -5,9 +5,12 @@ var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 var cors = require('cors');
 
-var eventmapRouter = require('./routes/eventmap');
-var heatmapRouter = require('./routes/heatmap');
-var timelinemapRouter = require('./routes/timelinemap');
+var testPageRouter = require('./routes/testPage');
+var testEventRouter = require('./routes/testEvent');
+
+var eventMapRouter = require('./routes/eventMap');
+var heatMapRouter = require('./routes/heatMap');
+var timelineMapRouter = require('./routes/timelineMap');
 
 var app = express();
 
@@ -24,9 +27,12 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use('/eventmap', eventmapRouter);
-app.use('/heatmap', heatmapRouter);
-app.use('/timelinemap', timelinemapRouter);
+app.use('/testPage', testPageRouter);
+app.use('/testEvent', testEventRouter);
+
+app.use('/eventmap', eventMapRouter);
+app.use('/heatmap', heatMapRouter);
+app.use('/timelinemap', timelineMapRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

@@ -203,7 +203,7 @@
         // });
 
          // Control Select 
-        var select = new ol.interaction.Select({});
+         var select = new ol.interaction.Select({ hitTolerance: 5, style: style(true) });
         map.addInteraction(select);
 
 

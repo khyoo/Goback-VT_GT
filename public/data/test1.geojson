@@ -1,0 +1,137 @@
+{
+    "type": "FeatureCollection",
+    "features": [
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [                    
+                    106.763813,
+                    10.856916
+                ]
+            },
+            "properties": {
+                "ref": "APD0004328",
+                "cpost": "02440",
+                "region": "Picardie",
+                "dep": "2",
+                "commune": "Remigny",
+                "text": "Camouflage avec les moyens de fortune",
+                "author": "Opérateur D ; Brissy, Edouard",
+                "date": "1917/06/16",
+                "copy": "Ministère de la Culture (France) - Médiathèque de l'Architecture et du Patrimoine - Diffusion RMN",
+                "img": "/images/service_cp.png"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    106.754340,
+                    10.857837
+                ]
+            },
+            "properties": {
+                "ref": "APD0005719",
+                "cpost": "59220",
+                "region": "Nord-Pas-de-Calais",
+                "dep": "59",
+                "commune": "Denain",
+                "text": "Visite de la délégation de la Conférence de la paix à l'entrée",
+                "author": "Opérateur D ; Sélince",
+                "date": "1919/04/06",
+                "copy": "Ministère de la Culture (France) - Médiathèque de l'Architecture et du Patrimoine - Diffusion RMN",
+                "img": "/images/service_cp.png"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    106.757817,
+                    10.844476
+                ]
+            },
+            "properties": {
+                "ref": "APTH002327",
+                "cpost": "51600",
+                "region": "",
+                "dep": "51",
+                "commune": "Souain-Perthes-lès-Hurlus",
+                "text": "Prisonniers allemands au bord de la route",
+                "author": "Opérateur Théta (code armée, photographe)",
+                "date": "1918/10/09",
+                "copy": "Ministère de la Culture (France) - Médiathèque de l'architecture et du patrimoine - diffusion RMN",
+                "img": "/images/service_cp.png"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    106.776583,
+                    10.845022
+                ]
+            },
+            "properties": {
+                "ref": "APTH002364",
+                "cpost": "51800",
+                "region": "",
+                "dep": "51",
+                "commune": "Ripont",
+                "text": "Emplacement du village",
+                "author": "Opérateur Théta (code armée, photographe)",
+                "date": "1918/10/02",
+                "copy": "Ministère de la Culture (France) - Médiathèque de l'architecture et du patrimoine - diffusion RMN",
+                "img": "/images/service_cp.png"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    106.786239,
+                    10.853747
+                ]
+            },
+            "properties": {
+                "ref": "APTH002125",
+                "cpost": "02130",
+                "region": "",
+                "dep": "2",
+                "commune": "Vaux",
+                "text": "Prisonniers allemands faisant la moisson",
+                "author": "Opérateur Théta (code armée, photographe)",
+                "date": "1918/08/24",
+                "copy": "Ministère de la Culture (France) - Médiathèque de l'architecture et du patrimoine - diffusion RMN",
+                "img": "/images/service_cp.png"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    106.769839,
+                    10.867509
+                ]
+            },
+            "properties": {
+                "ref": "APTH002382",
+                "cpost": "51490",
+                "region": "",
+                "dep": "51",
+                "commune": "Pontfaverger",
+                "text": "Ruines",
+                "author": "Opérateur Théta (code armée, photographe)",
+                "date": "1918/09/10",
+                "copy": "Ministère de la Culture (France) - Médiathèque de l'architecture et du patrimoine - diffusion RMN",
+                "img": "/images/service_cp.png"
+            }
+        }
+    ]
+}

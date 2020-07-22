@@ -8,8 +8,8 @@
         <div style="height:6%;line-height:60px;vertical-align:middle;">
             <div>
                 보기모드 : <button class="cbutton" onclick="location.href='eventmap'">지 도</button>
-                          <button class="cbutton" onclick="location.href='heatmap'">히트맵</button>
-                          <button class="cbutton" onclick="location.href='timelinemap'">타임라인</button>
+                <button class="cbutton" onclick="location.href='heatmap'">히트맵</button>
+                <button class="cbutton" onclick="location.href='timelinemap'">타임라인</button>
                          
             </div>
             <!-- <div style="float:right;">
@@ -21,30 +21,29 @@
 
         <!-- DIV pour la carte -->
         <div id="map" style="height:94%;"></div>
+        
 
-        <select id="heatmap-select" onchange="changeLayer()">
-            <option value="layer1">데이터 유형 1</option>
-            <option value="layer2">데이터 유형 2</option>
-            <option value="layer3">데이터 유형 3</option>
-        </select>
-    
-    <script type="text/javascript">        
+    <script type="text/javascript"> 
 
         var view = new ol.View({
             projection: 'EPSG:4326',
-            center: [127.153789, 35.823685],
-            zoom: 15
+            center: [106.764194, 10.854639],
+            // center: [127.153789, 35.823685],
+            zoom: 16
         });
 
         var map = new ol.Map({
             target: 'map',
-            layers: [                
+            layers: [
+                new olgm.layer.Google(
+
+                ),                
                 new ol.layer.Tile({
                     // A layer must have a title to appear in the layerswitcher
                     title: 'VWorld 2D',
                     // Again set this layer as a base layer
                     type: 'base',
-                    visible: true,
+                    visible: false,
                     source: new ol.source.XYZ({
                         url: 'http://xdworld.vworld.kr:8080/2d/Base/service/{z}/{x}/{y}.png'
                     })
@@ -64,16 +63,28 @@
                     title: 'OSM',
                     // Again set this layer as a base layer
                     type: 'base',
-                    visible: false,
+                    visible: true,
                     source: new ol.source.OSM()
                 })
             ],
             view: view
         });
-        
-        var zoom = map.getView().getZoom();
+       
 
-        console.log(zoom);
+
+        var socket = io.connect();
+
+        // 서버로 메시지 송신
+        // socket.emit("event_name", msg);
+
+        // 서버로부터 메시지 수신
+        socket.on('kafka_msg', function (data) {
+            console.log(data);
+            // view.animate({
+            //     center: [127.151689, 35.827485],
+            //     duration: 1500
+            // });
+        });
 
         var zoomslider = new ol.control.ZoomSlider();
         map.addControl(zoomslider);   
@@ -84,6 +95,32 @@
         });
         map.addControl(layerSwitcher);
        
+        var marker = new ol.Overlay({
+        position: [127.153789, 35.823685],
+        positioning: 'center-center',
+        element: document.getElementById('marker'),
+        stopEvent: false
+      });
+      map.addOverlay(marker);
+        
+
+        // var socket = io.connect();
+
+
+        // /** 
+        //  * 함수 : 이벤트별 소켓 처리 함수
+        //  * 설명 : KAFKA 이벤트 메시지에서 이벤트 ID 별로 파싱한 후 개별 이벤트 처리를 담당한다.
+        //  * 매개변수 : 없음
+        //  * 반환값 : 없음
+        //  * AJAX 처리 : 없음
+        //  */
+        // socket.on('kafka_msg', function (data) {
+        //     var total_msg = JSON.parse(data);
+
+
+
+
+        // }
        
         
 

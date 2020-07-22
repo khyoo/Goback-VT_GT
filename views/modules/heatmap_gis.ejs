@@ -1,0 +1,815 @@
+<script>
+
+    var cfg = {
+        // radius should be small ONLY if scaleRadius is true (or small radius is intended)
+        // if scaleRadius is false it will be the constant radius used in pixels
+        "radius": 0.0005,
+        "maxOpacity": 0.8,
+        // scales the radius based on map zoom
+        "scaleRadius": true,
+        // if set to false the heatmap uses the global maximum for colorization
+        // if activated: uses the data maximum within the current map boundaries 
+        //   (there will always be a red spot with useLocalExtremas true)
+        "useLocalExtrema": true,
+        // which field name in your data represents the latitude - default "lat"
+        latField: 'lat',
+        // which field name in your data represents the longitude - default "lng"
+        lngField: 'lng',
+        // which field name in your data represents the data value - default "value"
+        valueField: 'count'
+    };
+
+    var ca_ca_cfg = {
+        // radius should be small ONLY if scaleRadius is true (or small radius is intended)
+        // if scaleRadius is false it will be the constant radius used in pixels
+        "radius": 0.0025,
+        "maxOpacity": 0.8,
+        // scales the radius based on map zoom
+        "scaleRadius": true,
+        // if set to false the heatmap uses the global maximum for colorization
+        // if activated: uses the data maximum within the current map boundaries
+        //   (there will always be a red spot with useLocalExtremas true)
+        "useLocalExtrema": true,
+        // which field name in your data represents the latitude - default "lat"
+        latField: 'lat',
+        // which field name in your data represents the longitude - default "lng"
+        lngField: 'lng',
+        // which field name in your data represents the data value - default "value"
+        valueField: 'count'
+    };
+
+    var ca_etc_cfg = {
+        // radius should be small ONLY if scaleRadius is true (or small radius is intended)
+        // if scaleRadius is false it will be the constant radius used in pixels
+        "radius": 0.004,
+        "maxOpacity": 0.8,
+        // scales the radius based on map zoom
+        "scaleRadius": true,
+        // if set to false the heatmap uses the global maximum for colorization
+        // if activated: uses the data maximum within the current map boundaries
+        //   (there will always be a red spot with useLocalExtremas true)
+        "useLocalExtrema": true,
+        // which field name in your data represents the latitude - default "lat"
+        latField: 'lat',
+        // which field name in your data represents the longitude - default "lng"
+        lngField: 'lng',
+        // which field name in your data represents the data value - default "value"
+        valueField: 'count'
+    };
+
+    var sw_bv_cfg = {
+        // radius should be small ONLY if scaleRadius is true (or small radius is intended)
+        // if scaleRadius is false it will be the constant radius used in pixels
+        "radius": 0.0005,
+        "maxOpacity": 0.8,
+        // scales the radius based on map zoom
+        "scaleRadius": true,
+        // if set to false the heatmap uses the global maximum for colorization
+        // if activated: uses the data maximum within the current map boundaries
+        //   (there will always be a red spot with useLocalExtremas true)
+        "useLocalExtrema": true,
+        // which field name in your data represents the latitude - default "lat"
+        latField: 'lat',
+        // which field name in your data represents the longitude - default "lng"
+        lngField: 'lng',
+        // which field name in your data represents the data value - default "value"
+        valueField: 'count'
+    };
+
+    var bf_do_cfg = {
+        // radius should be small ONLY if scaleRadius is true (or small radius is intended)
+        // if scaleRadius is false it will be the constant radius used in pixels
+        "radius": 0.002,
+        "maxOpacity": 0.8,
+        // scales the radius based on map zoom
+        "scaleRadius": true,
+        // if set to false the heatmap uses the global maximum for colorization
+        // if activated: uses the data maximum within the current map boundaries
+        //   (there will always be a red spot with useLocalExtremas true)
+        "useLocalExtrema": true,
+        // which field name in your data represents the latitude - default "lat"
+        latField: 'lat',
+        // which field name in your data represents the longitude - default "lng"
+        lngField: 'lng',
+        // which field name in your data represents the data value - default "value"
+        valueField: 'count'
+    };
+
+    var bf_ff_cfg = {
+        // radius should be small ONLY if scaleRadius is true (or small radius is intended)
+        // if scaleRadius is false it will be the constant radius used in pixels
+        "radius": 0.002,
+        "maxOpacity": 0.8,
+        // scales the radius based on map zoom
+        "scaleRadius": true,
+        // if set to false the heatmap uses the global maximum for colorization
+        // if activated: uses the data maximum within the current map boundaries
+        //   (there will always be a red spot with useLocalExtremas true)
+        "useLocalExtrema": true,
+        // which field name in your data represents the latitude - default "lat"
+        latField: 'lat',
+        // which field name in your data represents the longitude - default "lng"
+        lngField: 'lng',
+        // which field name in your data represents the data value - default "value"
+        valueField: 'count'
+    };
+
+    var bf_nf_cfg = {
+        // radius should be small ONLY if scaleRadius is true (or small radius is intended)
+        // if scaleRadius is false it will be the constant radius used in pixels
+        "radius": 0.002,
+        "maxOpacity": 0.8,
+        // scales the radius based on map zoom
+        "scaleRadius": true,
+        // if set to false the heatmap uses the global maximum for colorization
+        // if activated: uses the data maximum within the current map boundaries
+        //   (there will always be a red spot with useLocalExtremas true)
+        "useLocalExtrema": true,
+        // which field name in your data represents the latitude - default "lat"
+        latField: 'lat',
+        // which field name in your data represents the longitude - default "lng"
+        lngField: 'lng',
+        // which field name in your data represents the data value - default "value"
+        valueField: 'count'
+    };
+
+    var bf_tp_cfg = {
+        // radius should be small ONLY if scaleRadius is true (or small radius is intended)
+        // if scaleRadius is false it will be the constant radius used in pixels
+        "radius": 0.002,
+        "maxOpacity": 0.8,
+        // scales the radius based on map zoom
+        "scaleRadius": true,
+        // if set to false the heatmap uses the global maximum for colorization
+        // if activated: uses the data maximum within the current map boundaries
+        //   (there will always be a red spot with useLocalExtremas true)
+        "useLocalExtrema": true,
+        // which field name in your data represents the latitude - default "lat"
+        latField: 'lat',
+        // which field name in your data represents the longitude - default "lng"
+        lngField: 'lng',
+        // which field name in your data represents the data value - default "value"
+        valueField: 'count'
+    };
+
+
+    var heatmapLayer;
+    //heatmapLayer.setData(testData);
+
+    var ftg_stat;
+
+    // 지능형 도보안전 통계 조회(통과차량/과속차량/평균속도)
+    function search_stat(service, stat) {
+        console.log(service);
+        console.log(stat);
+
+        if (heatmapLayer != undefined) {
+            heatmapLayer.remove();
+            $("#id_chkbox_heatmap").attr("checked", false);
+        }
+
+        var items_key;
+        var result_heat = {};
+
+        if (service == "AS") {
+            heatmapLayer = new HeatmapOverlay(cfg);
+
+            if (stat == "001") {
+                items_key = "array_26e8812d.sum";
+            } else if (stat == "002") {
+                items_key = "array_d8184c34.sum";
+            } else if (stat == "003") {
+                items_key = "array_9da2af23.avg";
+            }
+
+            var date_type = 'M';
+            var ajax_url = getDataMart_URL_byParsing(heatmap_as_url, date_type);
+console.log(ajax_url);
+            $.ajax({
+                url: ajax_url,
+                headers: { "Content-Type": "application/json; charset=UTF-8" },
+                //data: { gid_arr: gid_arr },
+                dataType: 'json',
+                async: false,
+                type: "GET",
+                success: function (data) {
+                    //console.log(data.aggregations[0].group.buckets[0].key);
+
+                    if (ftg_stat != undefined) {
+                        ftg_stat.clearLayers();
+                    }
+
+                    ftg_stat = new L.featureGroup()
+
+                    var heatmap_data_arr = new Array();
+
+                    var buckets = data.aggregations[0].group.buckets;
+                    for (var key in buckets) {
+                        //console.log(buckets[key].items["array_d8184c34.sum"].value);
+                        $.ajax({
+                            url: "/rhea_gis/public_device_info",
+                            headers: { "Content-Type": "application/json; charset=UTF-8" },
+                            data: { device_code: buckets[key].key },
+                            dataType: 'json',
+                            async: false,
+                            type: "GET",
+                            success: function (dataSub) {
+
+                                //console.log(dataSub.rows[0].GID);
+                                $.ajax({
+                                    url: "/rhea_gis/spatial/device_poi_geom",
+                                    headers: { "Content-Type": "application/json; charset=UTF-8" },
+                                    data: { gid: dataSub.rows[0].GID },
+                                    dataType: 'json',
+                                    async: false,
+                                    type: "GET",
+                                    success: function (dataSub2) {
+                                        var poi_coord = JSON.parse(dataSub2.rows[0].st_asgeojson);
+                                        //console.log(poi_coord.coordinates[1]);
+                                        //console.log(poi_coord.coordinates[0]);
+
+                                        var obj_data = {};
+                                        obj_data.lat = poi_coord.coordinates[1];
+                                        obj_data.lng = poi_coord.coordinates[0];
+                                        obj_data.count = buckets[key].items[items_key].value;
+
+                                        var count_comma = numberWithCommas(buckets[key].items[items_key].value);
+                                        //console.log(obj_data);
+
+                                        var options = {
+                                            iconStyle: 'opacity:0.7;',
+                                            iconSize: [50, 50],
+                                            iconAnchor: [25, 50],
+                                            isAlphaNumericIcon: true,
+                                            text: count_comma,
+                                            borderColor: '#00ABDC',
+                                            borderWidth: 1,
+                                            textColor: '#00ABDC',
+                                            innerIconAnchor: [0, 11],
+                                            innerIconStyle: 'font-size:15px;'
+                                        };
+
+                                        ftg_stat.addLayer(L.marker([Number(poi_coord.coordinates[1]), Number(poi_coord.coordinates[0])], {
+                                            icon: L.BeautifyIcon.icon(options)
+                                        }));
+
+                                        heatmap_data_arr.push(obj_data);
+                                        //L.marker([Number(poi_coord.coordinates[1]), Number(poi_coord.coordinates[0])], {icon: redMarker}).bindPopup().addTo(map);
+
+                                    },
+                                    error: function (dataSub2) {
+                                        console.log("실패");
+                                        //console.log(data);
+                                    }
+                                });
+                            },
+                            error: function (dataSub) {
+                                console.log("실패");
+                                //console.log(data);
+                            }
+                        });
+                    }
+                    result_heat.data = heatmap_data_arr;
+                    heatmapLayer.setData(result_heat);
+                    //console.log(heatmap_data_arr);
+                    //console.log(result_heat);
+
+                },
+                error: function (data) {
+                    console.log("실패");
+                    //console.log(data);
+                }
+            });
+        } else if (service == "CP") {
+
+        } else if (service == "RI") {
+
+        } else if (service == "IP") {
+
+        } else if (service == "SL") {
+
+        } else if (service == "LS") {
+
+        } else if (service == "CR") {
+
+        } else if (service == "MW") {
+
+        } else if (service == "SN") {
+
+        } else if (service == "SW") {
+            heatmapLayer = new HeatmapOverlay(sw_bv_cfg);
+
+            items_key = "volt.avg";
+
+            var date_type = 'M';
+            var ajax_url = getDataMart_URL_byParsing(heatmap_sw_url, date_type);
+console.log(ajax_url);
+            $.ajax({
+                url: ajax_url,
+                headers: { "Content-Type": "application/json; charset=UTF-8" },
+                //data: { gid_arr: gid_arr },
+                dataType: 'json',
+                async: false,
+                type: "GET",
+                success: function (data) {
+                    //console.log(data.aggregations[0].group.buckets[0].key);
+
+                    if (ftg_stat != undefined) {
+                        ftg_stat.clearLayers();
+                    }
+
+                    ftg_stat = new L.featureGroup()
+
+                    var heatmap_data_arr = new Array();
+
+                    var buckets = data.aggregations[0].group.buckets;
+                    for (var key in buckets) {
+                        //console.log(buckets[key].items["array_d8184c34.sum"].value);
+                        $.ajax({
+                            url: "/rhea_gis/public_device_info",
+                            headers: { "Content-Type": "application/json; charset=UTF-8" },
+                            data: { device_code: buckets[key].key },
+                            dataType: 'json',
+                            async: false,
+                            type: "GET",
+                            success: function (dataSub) {
+
+                                //console.log(dataSub.rows[0].GID);
+                                $.ajax({
+                                    url: "/rhea_gis/spatial/device_poi_geom",
+                                    headers: { "Content-Type": "application/json; charset=UTF-8" },
+                                    data: { gid: dataSub.rows[0].GID },
+                                    dataType: 'json',
+                                    async: false,
+                                    type: "GET",
+                                    success: function (dataSub2) {
+                                        var poi_coord = JSON.parse(dataSub2.rows[0].st_asgeojson);
+                                        //console.log(poi_coord.coordinates[1]);
+                                        //console.log(poi_coord.coordinates[0]);
+
+                                        var obj_data = {};
+                                        obj_data.lat = poi_coord.coordinates[1];
+                                        obj_data.lng = poi_coord.coordinates[0];
+                                        obj_data.count = buckets[key].items[items_key].value;
+
+                                        var count_comma = numberWithCommas(buckets[key].items[items_key].value);
+                                        //console.log(obj_data);
+
+                                        var options = {
+                                            iconStyle: 'opacity:0.7;',
+                                            iconSize: [50, 50],
+                                            iconAnchor: [25, 50],
+                                            isAlphaNumericIcon: true,
+                                            text: count_comma,
+                                            borderColor: '#00ABDC',
+                                            borderWidth: 1,
+                                            textColor: '#00ABDC',
+                                            innerIconAnchor: [0, 11],
+                                            innerIconStyle: 'font-size:15px;'
+                                        };
+
+                                        ftg_stat.addLayer(L.marker([Number(poi_coord.coordinates[1]), Number(poi_coord.coordinates[0])], {
+                                            icon: L.BeautifyIcon.icon(options)
+                                        }));
+
+                                        heatmap_data_arr.push(obj_data);
+                                        //L.marker([Number(poi_coord.coordinates[1]), Number(poi_coord.coordinates[0])], {icon: redMarker}).bindPopup().addTo(map);
+
+                                    },
+                                    error: function (dataSub2) {
+                                        console.log("실패");
+                                        //console.log(data);
+                                    }
+                                });
+                            },
+                            error: function (dataSub) {
+                                console.log("실패");
+                                //console.log(data);
+                            }
+                        });
+                    }
+                    result_heat.data = heatmap_data_arr;
+                    heatmapLayer.setData(result_heat);
+                    //console.log(heatmap_data_arr);
+                    //console.log(result_heat);
+
+                },
+                error: function (data) {
+                    console.log("실패");
+                    //console.log(data);
+                }
+            });
+        } else if (service == "ER") {
+
+        } else if (service == "UL") {
+
+        } else if (service == "CA") {   // 카메라(영상분석)
+            if (stat == "001" || stat == "002" || stat == "003" || stat == "004" || stat == "005" || stat == "006") {   //
+                heatmapLayer = new HeatmapOverlay(ca_ca_cfg);
+
+                var temp_data;
+
+                if (stat == "001") {
+                    temp_data = [8, 3, 6, 5, 12, 16, 10, 11, 27, 24, 1100, 1200, 1300, 1400, 1500, 1600, 1700, 34, 65, 143, 111, 46, 75, 209, 188, 216, 236, 206, 213];
+                } else if (stat == "002") {
+                    temp_data = [38, 63, 76, 55, 52, 76, 89, 91, 67, 44, 54, 67, 59, 43, 49, 86, 134, 34, 65, 143, 111, 46, 75, 197, 188, 196, 236, 206, 213];
+                } else if (stat == "003") {
+                    temp_data = [47, 29, 22, 42, 31, 12, 40, 56, 26, 34, 68, 89, 75, 106, 79, 126, 94, 16, 26, 31, 53, 12, 23, 35, 12, 153, 140, 122, 146];
+                } else if (stat == "004") {
+                    temp_data = [179, 226, 24, 30, 267, 47, 48, 68, 216, 187, 113, 47, 76, 98, 49, 68, 55, 69, 233, 192, 77, 267, 256, 291, 48, 74, 67, 58, 78];
+                } else if (stat == "005") {
+                    temp_data = [361, 329, 12, 16, 317, 31, 35, 18, 316, 287, 274, 94, 46, 57, 31, 29, 35, 47, 349, 212, 134, 210, 316, 351, 19, 34, 55, 48, 74];
+                } else if (stat == "006") {
+                    temp_data = [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100, 1200, 1300, 1400, 1500, 1600, 1700, 1800, 1900, 2000, 2100, 2200, 2300, 2400, 2500, 2600, 2700, 2800, 2900];
+                }
+
+                $.ajax({
+                    url: "/rhea_gis/filter_device_camera",
+                    headers: { "Content-Type": "application/json; charset=UTF-8" },
+                    data: {},
+                    dataType: 'json',
+                    async: false,
+                    type: "GET",
+                    success: function (dataSub) {
+                        //console.log(dataSub);
+                        if (ftg_stat != undefined) {
+                            ftg_stat.clearLayers();
+                        }
+
+                        ftg_stat = new L.featureGroup()
+
+                        var heatmap_data_arr = new Array();
+
+                        //console.log(dataSub.rows[0].GID);
+
+                        for (var i = 0; i < dataSub.rows.length; i++) {
+                            $.ajax({
+                                url: "/rhea_gis/spatial/device_poi_geom",
+                                headers: { "Content-Type": "application/json; charset=UTF-8" },
+                                data: { gid: dataSub.rows[i].GID },
+                                dataType: 'json',
+                                async: false,
+                                type: "GET",
+                                success: function (dataSub2) {
+                                    //console.log(dataSub2)
+                                    var poi_coord = JSON.parse(dataSub2.rows[0].st_asgeojson);
+                                    //console.log(poi_coord.coordinates[1]);
+                                    //console.log(poi_coord.coordinates[0]);
+
+                                    var obj_data = {};
+                                    obj_data.lat = poi_coord.coordinates[1];
+                                    obj_data.lng = poi_coord.coordinates[0];
+                                    obj_data.count = temp_data[i];
+
+                                    var count_comma = numberWithCommas(temp_data[i]);
+                                    //console.log(obj_data);
+
+                                    var options = {
+                                        iconStyle: 'opacity:0.7;',
+                                        iconSize: [50, 50],
+                                        iconAnchor: [25, 50],
+                                        isAlphaNumericIcon: true,
+                                        text: count_comma,
+                                        borderColor: '#00ABDC',
+                                        borderWidth: 1,
+                                        textColor: '#00ABDC',
+                                        innerIconAnchor: [0, 11],
+                                        innerIconStyle: 'font-size:15px;'
+                                    };
+
+                                    ftg_stat.addLayer(L.marker([Number(poi_coord.coordinates[1]), Number(poi_coord.coordinates[0])], {
+                                        icon: L.BeautifyIcon.icon(options)
+                                    }));
+
+                                    heatmap_data_arr.push(obj_data);
+                                    //L.marker([Number(poi_coord.coordinates[1]), Number(poi_coord.coordinates[0])], {icon: redMarker}).bindPopup().addTo(map);
+
+                                },
+                                error: function (dataSub2) {
+                                    console.log("실패");
+                                    //console.log(data);
+                                }
+
+                            });
+                        }
+                        result_heat.data = heatmap_data_arr;
+                        heatmapLayer.setData(result_heat);
+                    },
+                    error: function (dataSub) {
+                        console.log("실패");
+                        //console.log(data);
+                    }
+                });
+            } else if (stat == "007") {     //유동인구
+                heatmapLayer = new HeatmapOverlay(ca_etc_cfg);
+
+                if (ftg_stat != undefined) {
+                    ftg_stat.clearLayers();
+                }
+
+                ftg_stat = new L.featureGroup()
+
+                var heatmap_data_arr = new Array();
+                var dev_data_arr = new Array();
+
+                $.ajax({
+                    url: "/rhea_gis/public_device_info_from_services",
+                    headers: { "Content-Type": "application/json; charset=UTF-8" },
+                    data: { service_codes: "SERVICE_CODE = 'LS' OR SERVICE_CODE = 'SL'" },
+                    dataType: 'json',
+                    async: false,
+                    type: "GET",
+                    success: function (dataSub) {
+                        //console.log(dataSub);
+
+                        for (var i = 0; i < dataSub.rows.length; i++) {
+                            var dev_data = {};
+                            dev_data.dev_grp = dataSub.rows[i].DEVICE_GROUP_CODE.substring(0, 14);
+                            dev_data.gid = dataSub.rows[i].GID;
+                            dev_data.value = 0;
+
+                            dev_data_arr.push(dev_data);
+                        }
+                    },
+                    error: function (dataSub) {
+                        console.log("실패");
+                        //console.log(data);
+                    }
+                });
+                //console.log(dev_data_arr);
+                
+                var ajax_url;
+
+                var bucket_data_arr = new Array();
+
+                ajax_url = getDataMart_URL_byParsing(heatmap_ca_fp_sl_url, 'M');
+                items_key = "eventType.cou";
+
+                getDataMartStat(ajax_url, items_key, dev_data_arr);
+
+                ajax_url = getDataMart_URL_byParsing(heatmap_ca_fp_ls_url, 'M');
+                items_key = "eventType.cou";
+
+                getDataMartStat(ajax_url, items_key, dev_data_arr);
+                
+                //console.log(dev_data_arr);
+
+                for (var i = 0; i < dev_data_arr.length; i++) {
+                    $.ajax({
+                        url: "/rhea_gis/spatial/device_poi_geom",
+                        headers: { "Content-Type": "application/json; charset=UTF-8" },
+                        data: { gid: dev_data_arr[i].gid },
+                        dataType: 'json',
+                        async: false,
+                        type: "GET",
+                        success: function (dataSub2) {
+//                            console.log(dev_data_arr[i].gid); 
+    //                        console.log(dataSub2);
+                            var poi_coord = JSON.parse(dataSub2.rows[0].st_asgeojson);
+                            //console.log(poi_coord.coordinates[1]);
+                            //console.log(poi_coord.coordinates[0]);
+
+                            var obj_data = {};
+                            obj_data.lat = poi_coord.coordinates[1];
+                            obj_data.lng = poi_coord.coordinates[0];
+                            obj_data.count = dev_data_arr[i].value;
+
+                            var count_comma = numberWithCommas(dev_data_arr[i].value);
+                            //console.log(obj_data);
+
+                            var options = {
+                                iconStyle: 'opacity:0.7;',
+                                iconSize: [50, 50],
+                                iconAnchor: [25, 50],
+                                isAlphaNumericIcon: true,
+                                text: count_comma,
+                                borderColor: '#00ABDC',
+                                borderWidth: 1,
+                                textColor: '#00ABDC',
+                                innerIconAnchor: [0, 11],
+                                innerIconStyle: 'font-size:15px;'
+                            };
+
+                            ftg_stat.addLayer(L.marker([Number(poi_coord.coordinates[1]), Number(poi_coord.coordinates[0])], {
+                                icon: L.BeautifyIcon.icon(options)
+                            }));
+
+                            heatmap_data_arr.push(obj_data);
+                        },
+                        error: function (dataSub2) {
+                            console.log("실패");
+                            //console.log(data);
+                        }
+                    });
+                }
+                //console.log(heatmap_data_arr);
+                result_heat.data = heatmap_data_arr;
+                heatmapLayer.setData(result_heat);
+            }
+        } else if (service == "BF") {   // 함체이상
+
+            if (stat == "001") {
+                heatmapLayer = new HeatmapOverlay(bf_do_cfg);
+                
+                var date_type = 'M';
+
+                ajax_as_url = getDataMart_URL_byParsing(heatmap_bf_do_as_url, date_type);
+                ajax_ri_url = getDataMart_URL_byParsing(heatmap_bf_do_ri_url, date_type);
+                ajax_ip_url = getDataMart_URL_byParsing(heatmap_bf_do_ip_url, date_type);
+                ajax_sl_url = getDataMart_URL_byParsing(heatmap_bf_do_sl_url, date_type);
+                ajax_ls_url = getDataMart_URL_byParsing(heatmap_bf_do_ls_url, date_type);
+                ajax_cr_url = getDataMart_URL_byParsing(heatmap_bf_do_cr_url, date_type);
+                ajax_sn_url = getDataMart_URL_byParsing(heatmap_bf_do_sn_url, date_type);
+                ajax_mw_url = getDataMart_URL_byParsing(heatmap_bf_do_mw_url, date_type);
+
+                items_key = "doorStatus.cou";
+            } else if (stat == "002") {
+                heatmapLayer = new HeatmapOverlay(bf_ff_cfg);
+
+                var date_type = 'M';
+                
+                ajax_as_url = getDataMart_URL_byParsing(heatmap_bf_ff_as_url, date_type);
+                ajax_ri_url = getDataMart_URL_byParsing(heatmap_bf_ff_ri_url, date_type);
+                ajax_ip_url = getDataMart_URL_byParsing(heatmap_bf_ff_ip_url, date_type);
+                ajax_sl_url = getDataMart_URL_byParsing(heatmap_bf_ff_sl_url, date_type);
+                ajax_ls_url = getDataMart_URL_byParsing(heatmap_bf_ff_ls_url, date_type);
+                ajax_cr_url = getDataMart_URL_byParsing(heatmap_bf_ff_cr_url, date_type);
+                ajax_sn_url = getDataMart_URL_byParsing(heatmap_bf_ff_sn_url, date_type);
+                ajax_mw_url = getDataMart_URL_byParsing(heatmap_bf_ff_mw_url, date_type);
+
+                items_key = "fan.cou";
+            } else if (stat == "003") {
+                heatmapLayer = new HeatmapOverlay(bf_nf_cfg);
+
+                var date_type = 'M';
+
+                ajax_as_url = getDataMart_URL_byParsing(heatmap_bf_nf_as_url, date_type);
+                ajax_ri_url = getDataMart_URL_byParsing(heatmap_bf_nf_ri_url, date_type);
+                ajax_ip_url = getDataMart_URL_byParsing(heatmap_bf_nf_ip_url, date_type);
+                ajax_sl_url = getDataMart_URL_byParsing(heatmap_bf_nf_sl_url, date_type);
+                ajax_ls_url = getDataMart_URL_byParsing(heatmap_bf_nf_ls_url, date_type);
+                ajax_cr_url = getDataMart_URL_byParsing(heatmap_bf_nf_cr_url, date_type);
+                ajax_sn_url = getDataMart_URL_byParsing(heatmap_bf_nf_sn_url, date_type);
+                ajax_mw_url = getDataMart_URL_byParsing(heatmap_bf_nf_mw_url, date_type);
+
+                items_key = "status.cou";
+            } else if (stat == "004") {
+                heatmapLayer = new HeatmapOverlay(bf_tp_cfg);
+
+                var date_type = 'M';
+
+                ajax_as_url = getDataMart_URL_byParsing(heatmap_bf_tp_as_url, date_type);
+                ajax_ri_url = getDataMart_URL_byParsing(heatmap_bf_tp_ri_url, date_type);
+                ajax_ip_url = getDataMart_URL_byParsing(heatmap_bf_tp_ip_url, date_type);
+                ajax_sl_url = getDataMart_URL_byParsing(heatmap_bf_tp_sl_url, date_type);
+                ajax_ls_url = getDataMart_URL_byParsing(heatmap_bf_tp_ls_url, date_type);
+                ajax_cr_url = getDataMart_URL_byParsing(heatmap_bf_tp_cr_url, date_type);
+                ajax_sn_url = getDataMart_URL_byParsing(heatmap_bf_tp_sn_url, date_type);
+                ajax_mw_url = getDataMart_URL_byParsing(heatmap_bf_tp_mw_url, date_type);
+
+                items_key = "tp.avg";
+            }
+
+            if (ftg_stat != undefined) {
+                ftg_stat.clearLayers();
+            }
+
+            ftg_stat = new L.featureGroup()
+
+            var heatmap_data_arr = new Array();
+            var dev_data_arr = new Array();
+
+            $.ajax({
+                url: "/rhea_gis/public_device_info_from_services",
+                headers: { "Content-Type": "application/json; charset=UTF-8" },
+                data: { service_codes: "TYPE_CODE = 'B' AND SERVICE_CODE = 'AS' OR SERVICE_CODE = 'RI' OR SERVICE_CODE = 'IP' OR SERVICE_CODE = 'SL' OR SERVICE_CODE = 'LS' OR SERVICE_CODE = 'CR' OR SERVICE_CODE = 'SN' OR SERVICE_CODE = 'MW'" },
+                dataType: 'json',
+                async: false,
+                type: "GET",
+                success: function (dataSub) {
+                    //console.log(dataSub);
+
+                    for (var i = 0; i < dataSub.rows.length; i++) {
+                        var dev_data = {};
+                        dev_data.dev_grp = dataSub.rows[i].DEVICE_GROUP_CODE.substring(0, 14);
+                        dev_data.gid = dataSub.rows[i].GID;
+                        dev_data.value = 0;
+
+                        dev_data_arr.push(dev_data);
+                    }
+                },
+                error: function (dataSub) {
+                    console.log("실패");
+                    //console.log(data);
+                }
+            });
+            //console.log(dev_data_arr);
+            
+            var ajax_url;
+            
+            var bucket_data_arr = new Array();
+
+            // 지능형도보안전
+            getDataMartStat(ajax_as_url, items_key, dev_data_arr);
+            //도로위험정보
+            getDataMartStat(ajax_ri_url, items_key, dev_data_arr);
+            //불법주정차
+            getDataMartStat(ajax_ip_url, items_key, dev_data_arr);
+            //스마트가로등
+            getDataMartStat(ajax_sl_url, items_key, dev_data_arr);
+            //생활안전CCTV
+            getDataMartStat(ajax_ls_url, items_key, dev_data_arr);
+            //차번인식CCTV
+            getDataMartStat(ajax_cr_url, items_key, dev_data_arr);
+            //디지털사이니지
+            getDataMartStat(ajax_sn_url, items_key, dev_data_arr);
+            //미디어월
+            getDataMartStat(ajax_mw_url, items_key, dev_data_arr);
+           
+            console.log(dev_data_arr);
+
+            for (var i = 0; i < dev_data_arr.length; i++) {
+                $.ajax({
+                    url: "/rhea_gis/spatial/device_poi_geom",
+                    headers: { "Content-Type": "application/json; charset=UTF-8" },
+                    data: { gid: dev_data_arr[i].gid },
+                    dataType: 'json',
+                    async: false,
+                    type: "GET",
+                    success: function (dataSub2) {
+                        var poi_coord = JSON.parse(dataSub2.rows[0].st_asgeojson);
+                        //console.log(poi_coord.coordinates[1]);
+                        //console.log(poi_coord.coordinates[0]);
+
+                        var obj_data = {};
+                        obj_data.lat = poi_coord.coordinates[1];
+                        obj_data.lng = poi_coord.coordinates[0];
+                        obj_data.count = dev_data_arr[i].value;
+
+                        var count_comma = numberWithCommas(dev_data_arr[i].value);
+                        //console.log(obj_data);
+
+                        var options = {
+                            iconStyle: 'opacity:0.7;',
+                            iconSize: [50, 50],
+                            iconAnchor: [25, 50],
+                            isAlphaNumericIcon: true,
+                            text: count_comma,
+                            borderColor: '#00ABDC',
+                            borderWidth: 1,
+                            textColor: '#00ABDC',
+                            innerIconAnchor: [0, 11],
+                            innerIconStyle: 'font-size:15px;'
+                        };
+
+                        ftg_stat.addLayer(L.marker([Number(poi_coord.coordinates[1]), Number(poi_coord.coordinates[0])], {
+                            icon: L.BeautifyIcon.icon(options)
+                        }));
+
+                        heatmap_data_arr.push(obj_data);
+                    },
+                    error: function (dataSub2) {
+                        console.log("실패");
+                        //console.log(data);
+                    }
+                });
+            }
+            //console.log(heatmap_data_arr);
+            result_heat.data = heatmap_data_arr;
+            heatmapLayer.setData(result_heat);
+        }
+
+        able_chkbox_stat();
+        evt_chkbox_data();
+    }
+
+    function getDataMartStat(ajax_url, items_key, obj_dev_data_arr) {
+        //console.log(ajax_url);
+        $.ajax({
+            url: ajax_url,
+            headers: { "Content-Type": "application/json; charset=UTF-8" },
+            dataType: 'json',
+            async: false,
+            type: "GET",
+            success: function (data) {
+                //console.log(data.aggregations.length);
+                
+                if (data.aggregations.length > 0) {
+                    var buckets = data.aggregations[0].group.buckets;
+                    for (var key in buckets) {
+                        for (var i = 0; i < obj_dev_data_arr.length; i++) {
+
+                            if (obj_dev_data_arr[i].dev_grp === buckets[key].key.substring(0, 14)) {
+                                obj_dev_data_arr[i].value = Number(obj_dev_data_arr[i].value) + Number(buckets[key].items[items_key].value);
+                            }
+                        }
+                    }
+                }
+            },
+            error: function (data) {
+                console.log("실패");
+                //console.log(data);
+            }
+        });
+    }
+</script>

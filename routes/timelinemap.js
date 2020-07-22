@@ -5,7 +5,7 @@ var router = express.Router();
 router.get('/', function(req, res, next) {
   console.log("timelinemap");  
 
-  res.render('timelinemap', {});
+  res.render('timelineMap', {});
 });
 
 

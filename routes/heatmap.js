@@ -5,7 +5,7 @@ var router = express.Router();
 router.get('/', function(req, res, next) {
   console.log("heatmap");  
 
-  res.render('heatmap', {});
+  res.render('heatMap', {});
 });
 
 
