@@ -11,8 +11,8 @@
     <script src="https://cdn.polyfill.io/v2/polyfill.min.js?features=requestAnimationFrame,Element.prototype.classList"></script>
     
     <!-- ol-ext -->
-    <link rel="stylesheet" href="/gis/ol-ext/ol-ext.min.css" />
-    <script type="text/javascript" src="/gis/ol-ext/ol-ext.min.js"></script>
+    <link rel="stylesheet" href="/gis/ol-ext/ol-ext.css" />
+    <script type="text/javascript" src="/gis/ol-ext/ol-ext.js"></script>
 
     <!-- <link rel="stylesheet" href="/gis/ol-ext/styles/style.css" /> -->
     <link rel="stylesheet" href="/gis/ol-ext/styles/css/fontmaki.css" />
@@ -21,13 +21,15 @@
     <!-- jQuery -->
     <script type="text/javascript" src="https://code.jquery.com/jquery-1.11.0.min.js"></script>
 
-    <!-- FontAwesome -->
+    <!-- FontAwesome
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    -->
 
     <!-- ol-ext maki and fontawesome defintions used in fontsymbol -->
     <script type="text/javascript" src="/gis/ol-ext/extra/FontMakiDef.js"></script>
     <script type="text/javascript" src="/gis/ol-ext/extra/FontMaki2Def.js"></script>
     <script type="text/javascript" src="/gis/ol-ext/extra/FontAwesomeDef.js"></script>
+    
 
     <!-- <script src="https://unpkg.com/ol-layerswitcher@3.5.0"></script>
     <link rel="stylesheet" href="https://unpkg.com/ol-layerswitcher@3.5.0/src/ol-layerswitcher.css" /> -->
@@ -167,6 +169,18 @@
         }
         .ol-popup.default {
             border-radius: 20px;
+        }
+        .cus-popup-title {
+            font-size: large;
+            font-weight: bold;
+            text-align: center;
+            margin: .5em 1em .2em 1em;
+        }
+        .cus-popup-body {
+            font-size: medium;
+            /* font-weight: bold; */
+            /* text-align: center; */
+            margin-left: 1em;
         }
 
     </style>

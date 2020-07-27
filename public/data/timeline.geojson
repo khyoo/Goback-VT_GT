@@ -18,9 +18,8 @@
                 "commune": "Remigny",
                 "text": "Camouflage avec les moyens de fortune",
                 "author": "Opérateur D ; Brissy, Edouard",
-                "date": "1917/06/16",
-                "copy": "Ministère de la Culture (France) - Médiathèque de l'Architecture et du Patrimoine - Diffusion RMN",
-                "img": "http://localhost:40000/image_road/road_1.png"
+                "date": "2020/07/01",
+                "evtImg": "/image_road/road_1.png"
             }
         },
         {
@@ -40,9 +39,8 @@
                 "commune": "Denain",
                 "text": "Visite de la délégation de la Conférence de la paix à l'entrée",
                 "author": "Opérateur D ; Sélince",
-                "date": "1919/04/06",
-                "copy": "Ministère de la Culture (France) - Médiathèque de l'Architecture et du Patrimoine - Diffusion RMN",
-                "img": "http://localhost:40000/image_road/road_2.png"
+                "date": "2020/07/01",
+                "evtImg": "/image_road/road_2.png"
             }
         },
         {
@@ -62,9 +60,8 @@
                 "commune": "Souain-Perthes-lès-Hurlus",
                 "text": "Prisonniers allemands au bord de la route",
                 "author": "Opérateur Théta (code armée, photographe)",
-                "date": "1918/10/09",
-                "copy": "Ministère de la Culture (France) - Médiathèque de l'architecture et du patrimoine - diffusion RMN",
-                "img": "http://localhost:40000/image_road/road_3.png"
+                "date": "2020/07/02",
+                "evtImg": "/image_road/road_3.png"
             }
         },
         {
@@ -84,9 +81,8 @@
                 "commune": "Ripont",
                 "text": "Emplacement du village",
                 "author": "Opérateur Théta (code armée, photographe)",
-                "date": "1918/10/02",
-                "copy": "Ministère de la Culture (France) - Médiathèque de l'architecture et du patrimoine - diffusion RMN",
-                "img": "http://localhost:40000/image_road/road_4.png"
+                "date": "2020/07/02",
+                "evtImg": "/image_road/road_4.png"
             }
         },
         {
@@ -106,9 +102,8 @@
                 "commune": "Vaux",
                 "text": "Prisonniers allemands faisant la moisson",
                 "author": "Opérateur Théta (code armée, photographe)",
-                "date": "1918/08/24",
-                "copy": "Ministère de la Culture (France) - Médiathèque de l'architecture et du patrimoine - diffusion RMN",
-                "img": "http://localhost:40000/image_road/road_5.png"
+                "date": "2020/07/02",
+                "evtImg": "/image_road/road_5.png"
             }
         },
         {
@@ -128,9 +123,8 @@
                 "commune": "Pontfaverger",
                 "text": "Ruines",
                 "author": "Opérateur Théta (code armée, photographe)",
-                "date": "1918/09/10",
-                "copy": "Ministère de la Culture (France) - Médiathèque de l'architecture et du patrimoine - diffusion RMN",
-                "img": "http://localhost:40000/image_road/road_6.png"
+                "date": "2020/07/03",
+                "evtImg": "/image_road/road_6.png"
             }
         },
         {
@@ -150,9 +144,8 @@
                 "commune": "Vesle",
                 "text": "Américains dans leur nouvelles positions",
                 "author": "Opérateur Théta (code armée, photographe)",
-                "date": "1918/09/04",
-                "copy": "Ministère de la Culture (France) - Médiathèque de l'architecture et du patrimoine - diffusion RMN",
-                "img": "http://localhost:40000/image_road/road_7.png"
+                "date": "2020/07/09",
+                "evtImg": "/image_road/road_7.png"
             }
         },
         {
@@ -172,9 +165,8 @@
                 "commune": "Soissons",
                 "text": "Façade ouest, état en 1918",
                 "author": "Opérateur Théta (code armée, photographe)",
-                "date": "1918/08/05",
-                "copy": "Ministère de la Culture (France) - Médiathèque de l'architecture et du patrimoine - diffusion RMN",
-                "img": "http://localhost:40000/image_road/road_8.png"
+                "date": "2020/07/09",
+                "evtImg": "/image_road/road_8.png"
             }
         },
         {
@@ -194,9 +186,8 @@
                 "commune": "Sainte-Geneviève",
                 "text": "Poste de commandement",
                 "author": "Opérateur D ; Brissy, Edouard",
-                "date": "1915/09/10",
-                "copy": "Ministère de la Culture (France) - Médiathèque de l'Architecture et du Patrimoine - Diffusion RMN",
-                "img": "http://localhost:40000/image_road/road_9.png"
+                "date": "2020/07/10",
+                "evtImg": "/image_road/road_9.png"
             }
         },
         {
@@ -216,9 +207,8 @@
                 "commune": "La Neuville-au-Pont",
                 "text": "Une rue avec des soldats",
                 "author": "Opérateur D ; Brissy, Edouard",
-                "date": "1915/07/15",
-                "copy": "Ministère de la Culture (France) - Médiathèque de l'Architecture et du Patrimoine - Diffusion RMN",
-                "img": "http://localhost:40000/image_road/road_10.png"
+                "date": "2020/07/15",
+                "evtImg": "/image_road/road_10.png"
             }
         },
         {
@@ -238,9 +228,8 @@
                 "commune": "Dormans",
                 "text": "Lancement d'un pont suspendu sur la Marne",
                 "author": "Opérateur Théta (code armée, photographe)",
-                "date": "1918/08/29",
-                "copy": "Ministère de la Culture (France) - Médiathèque de l'architecture et du patrimoine - diffusion RMN",
-                "img": "http://localhost:40000/image_road/road_11.png"
+                "date": "2020/07/15",
+                "evtImg": "/image_road/road_11.png"
             }
         },
         {
@@ -260,9 +249,8 @@
                 "commune": "Sommeilles",
                 "text": "Vue d'ensemble",
                 "author": "Opérateur D ; Brissy, Edouard",
-                "date": "1915/07/13",
-                "copy": "Ministère de la Culture (France) - Médiathèque de l'Architecture et du Patrimoine - Diffusion RMN",
-                "img": "http://localhost:40000/image_road/road_12.png"
+                "date": "2020/07/24",
+                "evtImg": "/image_road/road_12.png"
             }
         },
         {
@@ -282,9 +270,8 @@
                 "commune": "Sivry-Ante",
                 "text": "Ante : nettoyage des mitrailleuses",
                 "author": "Opérateur D ; Brissy, Edouard",
-                "date": "1916/06/01",
-                "copy": "Ministère de la Culture (France) - Médiathèque de l'Architecture et du Patrimoine - Diffusion RMN",
-                "img": "http://localhost:40000/image_road/road_13.png"
+                "date": "2020/07/24",
+                "evtImg": "/image_road/road_13.png"
             }
         },
         {
@@ -304,9 +291,8 @@
                 "commune": "Suippes",
                 "text": "Enlèvement des débris après l'explosion du train de munitions",
                 "author": "Opérateur Théta (code armée, photographe)",
-                "date": "1918/09/29",
-                "copy": "Ministère de la Culture (France) - Médiathèque de l'architecture et du patrimoine - diffusion RMN",
-                "img": "http://localhost:40000/image_road/road_14.png"
+                "date": "2020/07/26",
+                "evtImg": "/image_road/road_14.png"
             }
         }
     ]

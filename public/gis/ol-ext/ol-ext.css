@@ -3876,8 +3876,8 @@
 .ol-popup.ol-fixed {
   margin: 0!important;
   top: .5em!important;
-  right: .5em!important;
-  left: auto!important;
+  left: .5em!important;
+  right: auto!important;
   bottom: auto!important;
 }
 .ol-popup.ol-fixed .anchor {

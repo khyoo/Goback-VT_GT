@@ -60,29 +60,22 @@
                     source: new ol.source.OSM()
                 })
             ],
+            interactions: ol.interaction.defaults({ altShiftDragRotate:false, pinchRotate:false }),
             view: view
         });
 
         // Array to cache image style
         var styleCache = {};
+
         // Vector style
         function getFeatureStyle(feature, resolution, sel) {
-            var k = feature.get("img").match(/[^\\/]+$/)[0];
-            console.log(k);
+            var k = feature.get("icon").match(/[^\\/]+$/)[0];
+            // console.log(k);
             var style = styleCache[k];
             if (!style) {
                 styleCache[k] = style = new ol.style.Style({
-                    image: new ol.style.Photo({
-                        src: feature.get("img"),
-                        radius: 25,
-                        crop: 1,
-                        kind: "anchored",
-                        shadow: 1,
-                        onload: function () { vector.changed(); },
-                        stroke: new ol.style.Stroke({
-                            width: 1,
-                            color: '#fff'
-                        })
+                    image: new ol.style.Icon({
+                        src: feature.get("icon")
                     })
                 });
             }
@@ -90,65 +83,63 @@
         }
 
         // GeoJSON layer
-        var vectorSource = new ol.source.Vector({
-            url: '/data/test1.geojson',
+        var vectorSource_intersection = new ol.source.Vector({
+            url: '/data/evt-intersection.geojson',
             projection: 'EPSG:3857',
             format: new ol.format.GeoJSON()
         });
 
-        var vector = new ol.layer.Vector({
-            name: 'test-icon',
-            source: vectorSource,
-            // y ordering
+        var vector_intersection = new ol.layer.Vector({
+            name: 'intersection-layer',
+            source: vectorSource_intersection,
             renderOrder: ol.ordering.yOrdering(),
             style: getFeatureStyle
         });
 
-        map.addLayer(vector);
+        map.addLayer(vector_intersection);
 
         // GeoJSON layer
-        var vectorSource2 = new ol.source.Vector({
-            url: '/data/test2.geojson',
+        var vectorSource_cctv = new ol.source.Vector({
+            url: '/data/evt-cctv.geojson',
             projection: 'EPSG:3857',
             format: new ol.format.GeoJSON()
         });
 
-        var vector2 = new ol.layer.Vector({
-            name: 'test-icon',
-            source: vectorSource2,
+        var vector_cctv = new ol.layer.Vector({
+            name: 'cctv-layer',
+            source: vectorSource_cctv,
             // y ordering
             renderOrder: ol.ordering.yOrdering(),
             style: getFeatureStyle
         });
 
-        map.addLayer(vector2);
+        map.addLayer(vector_cctv);
 
          // GeoJSON layer
-         var vectorSource3 = new ol.source.Vector({
-            url: '/data/test3.geojson',
+         var vectorSource_keeper = new ol.source.Vector({
+            url: '/data/evt-keeper.geojson',
             projection: 'EPSG:3857',
             format: new ol.format.GeoJSON()
         });
 
-        var vector3 = new ol.layer.Vector({
-            name: 'test-icon',
-            source: vectorSource3,
+        var vector_keeper = new ol.layer.Vector({
+            name: 'keeper-layer',
+            source: vectorSource_keeper,
             // y ordering
             renderOrder: ol.ordering.yOrdering(),
             style: getFeatureStyle
         });
 
-        map.addLayer(vector3);
+        map.addLayer(vector_keeper);
 
-        var home = new ol.Overlay.Placemark({
-            // color: '#369',
-            // backgroundColor : 'yellow',
-            contentColor: '#000',
+        // var home = new ol.Overlay.Placemark({
+        //     // color: '#369',
+        //     // backgroundColor : 'yellow',
+        //     contentColor: '#000',
+        // });
 
-        });
-        map.addOverlay(home);
-        home.show([106.764194, 10.854639]);
-
+        // map.addOverlay(home);
+        // home.show([106.764194, 10.854639]);
 
         function flyTo(location, done) {
             var duration = 2000;
@@ -178,15 +169,15 @@
             }, callback);
         }
 
-        var popup = new ol.Overlay.Popup({
-            popupClass: "default anim", //"tooltips", "warning" "black" "default", "tips", "shadow",
-            closeBox: false,
-            onclose: function () { console.log("You close the box"); },
-            positioning: "bottom-center",
-            autoPan: true,
-            autoPanAnimation: { duration: 100 }
-        });
-        map.addOverlay(popup);
+        // var popup = new ol.Overlay.Popup({
+        //     popupClass: "default anim", //"tooltips", "warning" "black" "default", "tips", "shadow",
+        //     closeBox: false,
+        //     onclose: function () { console.log("You close the box"); },
+        //     positioning: "bottom-center",
+        //     autoPan: true,
+        //     autoPanAnimation: { duration: 100 }
+        // });
+        // map.addOverlay(popup);
 
         var socket = io.connect();
 
@@ -218,21 +209,21 @@
 
         var currZoom = map.getView().getZoom();
         if (currZoom < 15) {
-            vector.setVisible(false);
+            vector_intersection.setVisible(false);
         } else {
-            vector.setVisible(true);
+            vector_intersection.setVisible(true);
         }
 
         if (currZoom < 16) {
-            vector2.setVisible(false);
+            vector_cctv.setVisible(false);
         } else {
-            vector2.setVisible(true);
+            vector_cctv.setVisible(true);
         }
 
         if (currZoom < 17) {
-            vector3.setVisible(false);
+            vector_keeper.setVisible(false);
         } else {
-            vector3.setVisible(true);
+            vector_keeper.setVisible(true);
         }
 
         map.on('moveend', function (e) {
@@ -242,27 +233,80 @@
                 console.log('zoom end, new zoom: ' + newZoom);
                 currZoom = newZoom;
                 if (currZoom < 15) {
-                    vector.setVisible(false);
+                    vector_intersection.setVisible(false);
                 } else {
-                    vector.setVisible(true);
+                    vector_intersection.setVisible(true);
                 }
 
                 if (currZoom < 16) {
-                    vector2.setVisible(false);
+                    vector_cctv.setVisible(false);
                 } else {
-                    vector2.setVisible(true);
+                    vector_cctv.setVisible(true);
                 }
 
                 if (currZoom < 17) {
-                    vector3.setVisible(false);
+                    vector_keeper.setVisible(false);
                 } else {
-                    vector3.setVisible(true);
+                    vector_keeper.setVisible(true);
                 }
             }
         });
+
+        // POI 클릭 시, 선택된 아이콘
+        var selStyle = new ol.style.Style({
+            image: new ol.style.Icon({
+                src: "/images/pin.png"
+            })           
+        });
+
+        // Select  interaction
+        var select = new ol.interaction.Select({
+            hitTolerance: 5,
+            multi: true,
+            style: selStyle,
+            condition: ol.events.condition.singleClick
+        });
+        map.addInteraction(select);
+
+        // Select control
+        var popup = new ol.Overlay.PopupFeature({
+            popupClass: "default anim", //"tooltips", "warning" "black" "default", "tips", "shadow",
+            positioning: "bottom-center",
+            offset: [0, -20],
+            select: select,
+            canFix: true,
+            onclose: function(f) {
+                console.log("close");
+            },
+            onshow: function(f) {                
+                console.log("show");
+            },
+            template: {
+                title: function(f) {
+                    return f.get('title'); //+' ('+f.get('id')+')';
+                },
+                attributes:
+                {
+                    'evtImg': {
+                        title: 'evtImg',
+                        src: function(f) {
+                            return f.get('evtImg');
+                        }
+                    },
+                    'date': { 
+                        title: 'Date', 
+                        before: '시간 : ',
+                        format: ol.Overlay.PopupFeature.localString()                         
+                    },                
+                    'locAddr': { title: 'locAddr', before: '위치 : ' },
+                    'chargeName': { title: 'chargeName', before: '담당자 : ' },
+                    'evtSubType': { title: 'evtSubType' },
+                    'deviceState': { title: 'deviceState' }      
+                }
+            }
+        });
+        map.addOverlay (popup);
     </script>
 
-
 </body>
-
 </html>

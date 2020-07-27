@@ -3,10 +3,29 @@
 
 <% include ./headers/header %>
 <style>
-    .ol-overlay .ol-fullscreen-image.ol-has-title img {
-      padding-bottom: 6em;
+    button.go:before {
+        content: '';
+        position: absolute;
+        width: 0;
+        height: .8em;
+        background: transparent;
+        border: 0.4em solid transparent;
+        border-right: 0;
+        border-left: .6em solid #fff;
+        left: 50%;
+        right: 50%;
+        transform: translate(-50%, -50%);
+        box-sizing: border-box;
     }
-  </style>
+
+    .running button.go:before {
+        background: transparent;
+        width: .2em;
+        border: 0;
+        box-shadow: .2em 0, -.2em 0;
+    }
+</style>
+
 <body>
 
     <div style="height:6%;line-height:60px;vertical-align:middle;">
@@ -28,21 +47,6 @@
 
     <script type="text/javascript">
         // Style function
-        function getFeatureStyle(feature, resolution, sel) {
-            var k = feature.get("icon").match(/[^\\/]+$/)[0];
-            // console.log(k);
-            var style = styleCache[k];
-            if (!style) {
-                styleCache[k] = style = new ol.style.Style({
-                    image: new ol.style.Icon({
-                        src: feature.get("icon")
-                    })
-                });
-            }
-            return [style];
-        }
-
-
         var cache = {};
         function style(select) {
             return function (f) {
@@ -50,10 +54,10 @@
                 if (!style) {
                     var img = new ol.style.Photo({
                         src: f.get('evtImg'),
-                        radius: select ? 20 : 30,
+                        radius: select ? 20 : 15,
                         shadow: true,
                         stroke: new ol.style.Stroke({
-                            width: 2,
+                            width: 4,
                             color: select ? '#fff' : '#fafafa'
                         }),
                         onload: function () { f.changed(); }
@@ -73,17 +77,17 @@
             format: new ol.format.GeoJSON()
         });
 
-        // var listenerKey = vectorSource.on('change', function (e) {  console.log('1212');
-        //     if (vectorSource.getState() == 'ready') {
-        //         ol.Observable.unByKey(listenerKey);
-        //         tline.refresh();
-        //     }
-        // });
+        var listenerKey = vectorSource.on('change', function (e) {
+            if (vectorSource.getState() == 'ready') {
+                ol.Observable.unByKey(listenerKey);
+                tline.refresh();
+            }
+        });
 
         var vector = new ol.layer.Vector({
             name: 'timeline-layer',
-            // style: style(),
-            source: vectorSource
+            source: vectorSource,
+            style: style()
         });
 
 
@@ -160,53 +164,27 @@
         });
 
 
-          // One feature per year
-            // var features = [];
-            // for (var i=1; i<=31; i++) {
-            //     features.push({
-            //     text: i,
-            //     date: new Date('2020/07/'+i),
-            //     endDate: new Date('2020/07/'+i)
-            //     })
-            // }
-
-             // Create Timeline control when features are loaded
-            // var tline = new ol.control.Timeline({
-            //     className: 'ol-zoomhover',
-            //     source: vectorSource,
-            //     interval: '3d',
-            //     graduation: 'day', // 'month'
-            //     zoomButton: false,
-            //     getHTML: function (f) { return '<img src="' + f.get('evtImg') + '"/>'; },
-            //     getFeatureDate: function (f) { return f.get('date'); },
-            //     endFeatureDate: function (f) {
-            //         var d = f.get('endDate');
-            //         // Create end date
-            //         if (!d) {
-            //             d = new Date(f.get('date'));
-            //             d = new Date(d.getTime() + (5 + 10 * Math.random()) * 10 * 24 * 60 * 60 * 1000);
-            //             f.set('endDate', d);
-            //         }
-            //         return d;
-            //     }
-            // });
-            // map.addControl(tline);
-            // tline.setDate('2020-07-01');
-
-            // Create Timeline control 
-            // var tline = new ol.control.Timeline({
-            //     // features: features,
-            //     source: vectorSource,
-            //     interval: '2d',  // 90 days = 3 month interval
-            //     graduation: 'day', // 'month'
-            //     minDate: new Date('2020-06-01'),
-            //     maxDate: new Date('2020-08-30'),
-            //     getHTML: function(f){ return '<img src="'+f.get('evtImg')+'"/> '+(f.get('text')||''); },
-            //     getFeatureDate: function(f){ return f.date; },
-            //     endFeatureDate: function(f) { return f.endDate }
-            // });
-            // map.addControl (tline);
-            // tline.setDate('2020-07-01');
+        // Create Timeline control when features are loaded
+        var tline = new ol.control.Timeline({
+            className: 'ol-zoomhover',
+            source: vectorSource,
+            interval: '3d',
+            graduation: 'day', // 'month'
+            zoomButton: false,
+            getHTML: function (f) { return '<img src="' + f.get('evtImg') + '"/>'; },
+            getFeatureDate: function (f) { return f.get('date'); },
+            endFeatureDate: function (f) {
+                var d = f.get('endDate');
+                // Create end date
+                if (!d) {
+                    d = new Date(f.get('date'));
+                    d = new Date(d.getTime() + (5 + 10 * Math.random()) * 10 * 24 * 60 * 60 * 1000);
+                    f.set('endDate', d);
+                }
+                return d;
+            }
+        });
+        map.addControl(tline);
 
         // Set the date when ready
         // setTimeout(function () { tline.setDate('2015'); });
@@ -219,19 +197,18 @@
         // });
 
         // Select a feature
-        // tline.on('select', function (e) {
-        //     // Center map on feature
-        //     map.getView().animate({
-        //         center: e.feature.getGeometry().getCoordinates(),
-        //         zoom: 16
-        //     });
-        //     // Center time line on feature
-        //     tline.setDate(e.feature);
-        //     // Select feature on the map
-        //     select.getFeatures().clear();
-        //     select.getFeatures().push(e.feature);
-        // });
-
+        tline.on('select', function (e) {
+            // Center map on feature
+            map.getView().animate({
+                center: e.feature.getGeometry().getCoordinates(),
+                zoom: 16
+            });
+            // Center time line on feature
+            tline.setDate(e.feature);
+            // Select feature on the map
+            select.getFeatures().clear();
+            select.getFeatures().push(e.feature);
+        });
 
         // Collapse the line
         // tline.on('collapse', function (e) {
@@ -243,7 +220,7 @@
         // tline.on('scroll', function (e) {
         //     // $('.options .date').text(e.date.toLocaleDateString());
         //     var d = tline.roundDate(e.date, 'day')
-        //     // $('.dateStart').text(d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }));
+        //     $('.dateStart').text(d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }));
         //     // Filter features visibility
         //     vectorSource.getFeatures().forEach(function (f) {
         //         var dt = f.get('time') - e.date;
@@ -255,31 +232,23 @@
         //     });
         // });
 
-        // tline.on('scroll', function(e){
-        //     // Start and end date
-        //     // $('.dateStart').text(e.dateStart.toLocaleDateString(undefined, {year: 'numeric', month: 'short', day: 'numeric'}));
-        //     // $('.dateEnd').text(e.dateEnd.toLocaleDateString(undefined, {year: 'numeric', month: 'short', day: 'numeric'}));
-        //     // Filter features visibility
-        //     vectorSource.getFeatures().forEach(function(f) {
-        //         var date = new Date(f.get('date'));
-        //         if (date<e.dateStart || date>e.dateEnd) {
-        //             f.setStyle([]);
-        //         } else {
-        //             f.setStyle();
-        //         }
-        //     });
-        // });
+        // Remove selection on close
+        // popup.on("change:visible", function (e) { if (!e.visible) select.getFeatures().clear(); });
 
-        
         // var select = new ol.interaction.Select({ hitTolerance: 5, style: style(true) });
         // map.addInteraction(select);
 
-        // select.on('select', function(e){    console.log("---------");console.log(e);
+        // select.on('select', function(e){
         //     var f = e.selected[0];
         //     if (f) {
-        //         tline.setDate(f);
+        //     tline.setDate(f);
         //     }
         // });
+
+        // Control Select 
+        // var select = new ol.interaction.Select({ hitTolerance: 5, style: style(true) });
+        // map.addInteraction(select);
+
 
         // On selected => show/hide popup
         // select.getFeatures().on('add', function (e) {
@@ -297,48 +266,6 @@
         // });
 
        
-         // Control Select 
-        var select = new ol.interaction.Select({});
-        map.addInteraction(select);
-
-        // Remove selection on close
-        popup.on("change:visible", function(e){ if (!e.visible) select.getFeatures().clear(); });
-
-        // On selected => show/hide popup
-        select.getFeatures().on('add', function(e) {	console.log("000000000000");
-            var feature = e.element;
-            popup.showImage(feature.get("evtImg").replace("_v.jpg","_p.jpg"), {
-                coordinate: (/frompoint/.test('zoom frompoint') ? feature.getGeometry().getCoordinates() : null),
-                title: feature.get("text") +'<br/>'
-            });
-            /*
-            var img = $("<img>").attr("src", feature.get("img").replace("_v.jpg","_p.jpg"));
-            popup.show(img.get(0).outerHTML, /frompoint/.test($("#anim").val()) ? feature.getGeometry().getCoordinates():null);
-            */
-        });
-
-          // Show feature on select
-        // var select = new ol.interaction.Select({ hitTolerance: 5, style: style(true) });
-        // map.addInteraction(select);
-        
-        
-        // select.on('select', function(e){    console.log(e);
-        //     var f = e.selected[0];
-        //     if (f) {
-        //     // Center
-        //     tline.setDate(f.get('date'));
-        //     // Show info
-        //             var info = $("#select").html("");
-        //             $("<img>").attr('src',f.get("img")).appendTo(info);
-        //             $("<p>").text(f.get("text")).appendTo(info);
-        //     $("<p>").text(f.get("commune")+" ("+f.get("region")+" - "
-        //         + (new Date(f.get("date"))).toLocaleDateString(undefined, {year: 'numeric', month: 'short', day: 'numeric'})
-        //         + ")").appendTo(info);
-        //             $("<p>").addClass('copy').html("&copy; "+f.get("copy")+" - "+f.get("author")).appendTo(info);
-        //         } else {
-        //     $("#select").html("<p>Select an image.</p>");
-        //     }
-        // });
 
 
     </script>

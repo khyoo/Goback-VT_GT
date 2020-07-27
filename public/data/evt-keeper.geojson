@@ -1,0 +1,65 @@
+{
+    "type": "FeatureCollection",
+    "features": [
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    106.766087,
+                    10.856468
+                ]
+            },
+            "properties": {
+                "title": "키퍼 1",
+                "evtSubType": "위반 / 지정 차로 위반",
+                "locAddr": "1번 교차로 그룹",
+                "chargeName": "MR.Kim",
+                "deviceState": "정상",
+                "date": "2020년 7월 27일 15시 42분 31초",
+                "icon": "/images/keeper.png",
+                "evtImg": "/images/road1.jpg"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    106.766030,
+                    10.855249
+                ]
+            },
+            "properties": {
+                "title": "키퍼 2",
+                "evtSubType": "위반 / 지정 차로 위반",
+                "locAddr": "1번 교차로 그룹",
+                "chargeName": "MR.Kim",
+                "deviceState": "정상",
+                "date": "2020년 7월 27일 15시 42분 31초",
+                "icon": "/images/keeper.png",
+                "evtImg": "/images/road2.jpg"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    106.764080,
+                    10.853822
+                ]
+            },
+            "properties": {
+                "title": "키퍼 3",
+                "evtSubType": "위반 / 지정 차로 위반",
+                "locAddr": "1번 교차로 그룹",
+                "chargeName": "MR.Kim",
+                "deviceState": "정상",
+                "date": "2020년 7월 27일 15시 42분 31초",
+                "icon": "/images/keeper.png",
+                "evtImg": "/images/road3.jpg"
+            }
+        }
+    ]
+}

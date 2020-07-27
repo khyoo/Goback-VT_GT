@@ -10746,7 +10746,7 @@ ol.control.Timeline.prototype.setDate = function(feature, options) {
  * @return {Date}
  */
 ol.control.Timeline.prototype.roundDate = function(d, stick) {
-  console.log(d)
+  //console.log(d)
   switch (stick) {
     case 'mn': {
       return new Date(this._roundTo(d, 60*1000));
@@ -23245,6 +23245,7 @@ ol.Overlay.PopupFeature.prototype.setTemplate = function(template) {
  * @param {ol.Feature|Array<ol.Feature>} features The features on the popup
  */
 ol.Overlay.PopupFeature.prototype.show = function(coordinate, features) {
+  // this.element.classList.add('ol-fixed');
   if (coordinate instanceof ol.Feature 
     || (coordinate instanceof Array && coordinate[0] instanceof ol.Feature)) {
     features = coordinate;
@@ -23272,7 +23273,7 @@ ol.Overlay.PopupFeature.prototype._getHtml = function(feature) {
   var html = ol.ext.element.create('DIV', { className: 'ol-popupfeature' });
   if (this.get('canFix')) {
     ol.ext.element.create('I', { className:'ol-fix', parent: html })
-      .addEventListener('click', function(){
+      .addEventListener('click', function(){ 
         this.element.classList.toggle('ol-fixed');
       }.bind(this));
   }
@@ -23293,10 +23294,57 @@ ol.Overlay.PopupFeature.prototype._getHtml = function(feature) {
     } else {
       title = feature.get(template.title);
     }
-    ol.ext.element.create('H2', { html:title, parent: html });
+    ol.ext.element.create('DIV', { html:title, parent: html, className: "cus-popup-title" });
   }
   // Display properties in a table
   if (template.attributes) {
+    /*    Custom Source (From: khyoo1221)     */
+    // var evt_img = ol.ext.element.create('IMG',{
+    //     src: "/images/car2.jpg",
+    //     width: "350px",
+    //     height: "200px"
+    // });
+
+    // ol.ext.element.create('DIV', { html: evt_img, parent: html });
+
+    
+    // var contents = ''
+    // ol.ext.element.create('DIV', { html: evt_img, parent: html });
+
+    var atts = template.attributes;
+    for (var att in atts) {
+      var a = atts[att];
+      var content, val = feature.get(att);
+      console.log(a);
+      console.log(val);
+
+      if (a.title == 'evtImg') {
+        var evt_img = ol.ext.element.create('IMG',{
+          src: val,
+          width: "350px",
+          height: "200px"
+        });
+    
+        ol.ext.element.create('DIV', { html: evt_img, parent: html });
+      } else if (a.title == 'evtSubType') {
+        content = '<br>' + (a.before||'') + val + (a.after||'');
+        var maxc = this.get('maxChar') || 200;
+        if (typeof(content) === 'string' && content.length>maxc) content = content.substr(0,maxc)+'[...]';
+        ol.ext.element.create('DIV', { html: content, parent: html, className: "cus-popup-body" });      
+      } else if (a.title == 'deviceState') {
+        content = '<br>디바이스 상태<br>' + (a.before||'') + val + (a.after||'');
+        var maxc = this.get('maxChar') || 200;
+        if (typeof(content) === 'string' && content.length>maxc) content = content.substr(0,maxc)+'[...]';
+        ol.ext.element.create('DIV', { html: content, parent: html, className: "cus-popup-body" });      
+      } else {
+        content = (a.before||'') + val + (a.after||'');
+        var maxc = this.get('maxChar') || 200;
+        if (typeof(content) === 'string' && content.length>maxc) content = content.substr(0,maxc)+'[...]';
+        ol.ext.element.create('DIV', { html: content, parent: html, className: "cus-popup-body" });      
+      }
+    }
+
+    /*    Original Source
     var tr, table = ol.ext.element.create('TABLE', { parent: html });
     var atts = template.attributes;
     for (var att in atts) {
@@ -23333,6 +23381,7 @@ ol.Overlay.PopupFeature.prototype._getHtml = function(feature) {
         });
       }
     }
+    */
   }
   // Zoom button
   ol.ext.element.create('BUTTON', { className: 'ol-zoombt', parent: html })
