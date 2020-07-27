@@ -3875,10 +3875,10 @@
 /** Fixed popup */
 .ol-popup.ol-fixed {
   margin: 0!important;
-  top: .5em!important;
-  left: .5em!important;
-  right: auto!important;
-  bottom: auto!important;
+  top: auto!important;
+  right: .5em!important;
+  left: auto!important;
+  bottom: .5em!important;
 }
 .ol-popup.ol-fixed .anchor {
   display: none;
