@@ -23245,7 +23245,7 @@ ol.Overlay.PopupFeature.prototype.setTemplate = function(template) {
  * @param {ol.Feature|Array<ol.Feature>} features The features on the popup
  */
 ol.Overlay.PopupFeature.prototype.show = function(coordinate, features) {
-  // this.element.classList.add('ol-fixed');
+  this.element.classList.add('ol-fixed');
   if (coordinate instanceof ol.Feature 
     || (coordinate instanceof Array && coordinate[0] instanceof ol.Feature)) {
     features = coordinate;
@@ -23274,7 +23274,7 @@ ol.Overlay.PopupFeature.prototype._getHtml = function(feature) {
   if (this.get('canFix')) {
     ol.ext.element.create('I', { className:'ol-fix', parent: html })
       .addEventListener('click', function(){ 
-        this.element.classList.toggle('ol-fixed');
+        // this.element.classList.toggle('ol-fixed');
       }.bind(this));
   }
   var template = this._template;

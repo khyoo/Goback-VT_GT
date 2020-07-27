@@ -169,24 +169,22 @@
             }, callback);
         }
 
-        // var popup = new ol.Overlay.Popup({
-        //     popupClass: "default anim", //"tooltips", "warning" "black" "default", "tips", "shadow",
-        //     closeBox: false,
-        //     onclose: function () { console.log("You close the box"); },
-        //     positioning: "bottom-center",
-        //     autoPan: true,
-        //     autoPanAnimation: { duration: 100 }
-        // });
-        // map.addOverlay(popup);
+        var evt_popup = new ol.Overlay.Popup({
+            popupClass: "default anim", //"tooltips", "warning" "black" "default", "tips", "shadow",
+            closeBox: false,
+            onclose: function () { console.log("You close the box"); },
+            positioning: "bottom-center",
+            autoPan: true,
+            autoPanAnimation: { duration: 100 }
+        });
+        map.addOverlay(evt_popup);
 
         var socket = io.connect();
 
         // 서버로부터 메시지 수신
         socket.on('kafka_consumer', function (data) {
-            // console.log(data);
+            console.log(data);
             var payload = JSON.parse(data.value);
-
-            home.hide();
 
             flyTo(payload.msg_loc, function () { });
 
@@ -195,7 +193,7 @@
             content += "<div style='text-align:center;margin: 1em 1em 1em 1em;'>";
             content += payload.msg_name;
             content += "</div>";
-            popup.show(payload.msg_loc, content);
+            evt_popup.show(payload.msg_loc, content);
         });
 
         var zoomslider = new ol.control.ZoomSlider();
@@ -255,7 +253,7 @@
         // POI 클릭 시, 선택된 아이콘
         var selStyle = new ol.style.Style({
             image: new ol.style.Icon({
-                src: "/images/pin.png"
+                src: "/images/pin_red.png"
             })           
         });
 
