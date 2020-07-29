@@ -141,61 +141,6 @@
         // map.addOverlay(home);
         // home.show([106.764194, 10.854639]);
 
-        function flyTo(location, done) {
-            var duration = 2000;
-            var zoom = view.getZoom();
-            var parts = 2;
-            var called = false;
-            function callback(complete) {
-                --parts;
-                if (called) {
-                    return;
-                }
-                if (parts === 0 || !complete) {
-                    called = true;
-                    done(complete);
-                }
-            }
-            view.animate({
-                center: location,
-                duration: duration
-            }, callback);
-            view.animate({
-                zoom: zoom - 1,
-                duration: duration / 2
-            }, {
-                zoom: zoom,
-                duration: duration / 2
-            }, callback);
-        }
-
-        var evt_popup = new ol.Overlay.Popup({
-            popupClass: "black", //"tooltips", "warning" "black" "default", "tips", "shadow",
-            closeBox: false,
-            onclose: function () { console.log("You close the box"); },
-            positioning: "bottom-center",
-            autoPan: true,
-            autoPanAnimation: { duration: 100 }
-        });
-        map.addOverlay(evt_popup);
-
-        var socket = io.connect();
-
-        // 서버로부터 메시지 수신
-        socket.on('kafka_consumer', function (data) {
-            console.log(data);
-            var payload = JSON.parse(data.value);
-
-            flyTo(payload.msg_loc, function () { });
-
-            var content = "";
-            content += "<div><img src='/images/" + payload.img + "' width='350px' height='250px' /></div>";
-            content += "<div style='text-align:center;margin: 1em 1em 1em 1em;'>";
-            content += payload.msg_name;
-            content += "</div>";
-            evt_popup.show(payload.msg_loc, content);
-        });
-
         var zoomslider = new ol.control.ZoomSlider();
         map.addControl(zoomslider);
 
@@ -206,6 +151,7 @@
         map.addControl(layerSwitcher);
 
         var currZoom = map.getView().getZoom();
+        
         if (currZoom < 15) {
             vector_intersection.setVisible(false);
         } else {
@@ -269,7 +215,7 @@
         // Select control
         var popup = new ol.Overlay.PopupFeature({
             popupClass: "default anim", //"tooltips", "warning" "black" "default", "tips", "shadow",
-            positioning: "bottom-center",
+            positioning: "bottom-center",            
             offset: [0, -20],
             select: select,
             canFix: true,
@@ -303,7 +249,172 @@
                 }
             }
         });
-        map.addOverlay (popup);
+        map.addOverlay(popup);
+
+        function flyTo(location, done) {
+            var duration = 2000;
+            var zoom = view.getZoom();
+            var parts = 2;
+            var called = false;
+            function callback(complete) {
+                --parts;
+                if (called) {
+                    return;
+                }
+                if (parts === 0 || !complete) {
+                    called = true;
+                    done(complete);
+                }
+            }
+            view.animate({
+                center: location,
+                duration: duration
+            }, callback);
+            view.animate({
+                zoom: zoom - 1,
+                duration: duration / 2
+            }, {
+                zoom: zoom,
+                duration: duration / 2
+            }, callback);
+        }
+
+        var source_temp = new ol.source.Vector({
+            wrapX: false
+        });
+        var vector_temp = new ol.layer.Vector({
+            source: source_temp
+        });
+        map.addLayer(vector_temp);     
+
+        var evt_popup = new ol.Overlay.Popup({
+            popupClass: "black", //"tooltips", "warning" "black" "default", "tips", "shadow",
+            closeBox: true,
+            onclose: function () { console.log("You close the box"); },
+            positioning: "bottom-center",
+            autoPan: true,
+            autoPanAnimation: { duration: 100 }
+        });
+        map.addOverlay(evt_popup);
+
+        var evt_keeper_popup = new ol.Overlay.Popup({
+            popupClass: "warning", //"tooltips", "warning" "black" "default", "tips", "shadow",
+            closeBox: true,
+            onclose: function () { console.log("You close the box"); },
+            positioning: "bottom-center",
+            autoPan: true,
+            autoPanAnimation: { duration: 100 }
+        });
+        map.addOverlay(evt_keeper_popup);
+
+        var socket = io.connect();
+
+        // 서버로부터 메시지 수신
+        socket.on('kafka_consumer', function (data) {
+            console.log(data);
+            var payload = JSON.parse(data.value);
+
+            if (payload.msg_code == 'EVT_001') {
+                flyTo(payload.msg_loc, function () { });
+
+                var content = "";
+                content += "<div><img src='" + payload.img + "' width='350px' height='250px' /></div>";
+                content += "<div style='text-align:center;margin: 1em 1em 1em 1em;'>";
+                content += payload.msg_name;
+                content += "</div>";
+                evt_popup.show(payload.msg_loc, content);
+            } else if (payload.msg_code == 'EVT_003') {
+                // console.log(payload.msg_loc);
+
+                var x_loc = payload.msg_loc[0];
+                var y_loc = payload.msg_loc[1];
+               
+                var geom = new ol.geom.Point([x_loc, y_loc]);
+                var feature = new ol.Feature({
+                    geometry: geom,
+                    code: payload.msg_code,
+                    type: payload.msg_type,
+                    level: payload.msg_level,
+                    name: payload.msg_name,
+                    img: payload.img
+                });
+                if (payload.msg_level == 1) {
+                    feature.setStyle(new ol.style.Style({
+                        fill: new ol.style.Fill({
+                            color: 'rgba(255, 255, 255, 0.2)'
+                        }),
+                        stroke: new ol.style.Stroke({
+                            color: '#ffffff',
+                            width: 2
+                        }),
+                        image: new ol.style.Circle({
+                            radius: 7,
+                            fill: new ol.style.Fill({
+                            color: '#008CBA'
+                            })
+                        })
+                    }));
+                } else if (payload.msg_level == 2) {
+                    feature.setStyle(new ol.style.Style({
+                        fill: new ol.style.Fill({
+                            color: 'rgba(255, 255, 255, 0.2)'
+                        }),
+                        stroke: new ol.style.Stroke({
+                            color: '#ffffff',
+                            width: 2
+                        }),
+                        image: new ol.style.Circle({
+                            radius: 7,
+                            fill: new ol.style.Fill({
+                            color: '#ffcc33'
+                            })
+                        })
+                    }));
+                } else if (payload.msg_level == 3) {
+                    feature.setStyle(new ol.style.Style({
+                        fill: new ol.style.Fill({
+                            color: 'rgba(255, 255, 255, 0.2)'
+                        }),
+                        stroke: new ol.style.Stroke({
+                            color: '#ffffff',
+                            width: 2
+                        }),
+                        image: new ol.style.Circle({
+                            radius: 7,
+                            fill: new ol.style.Fill({
+                            color: '#CC0000'
+                            })
+                        })
+                    }));
+                }
+                source_temp.addFeature(feature);
+            }
+        });
+
+        // // Control Select 
+        // var select2 = new ol.interaction.Select({});
+        // map.addInteraction(select2);
+
+        // On selected => show/hide popup
+        select.getFeatures().on(['add'], function(e) { 
+            var feature = e.element;
+            if (feature.get("code") == "EVT_003") {
+                var content = "";
+                content += "<img src='"+feature.get("img")+"'/>";
+                content += feature.get("name");
+                if (feature.get("level") == 1) {
+                    evt_keeper_popup.setPopupClass("default black");
+                } else if (feature.get("level") == 2) {
+                    evt_keeper_popup.setPopupClass("orange black");
+                } else if (feature.get("level") == 3) {
+                    evt_keeper_popup.setPopupClass("red black");
+                } 
+                evt_keeper_popup.show(feature.getGeometry().getFirstCoordinate(), content); 
+            }
+        });
+        select.getFeatures().on(['remove'], function(e) {
+            evt_keeper_popup.hide(); 
+        })
     </script>
 
 </body>

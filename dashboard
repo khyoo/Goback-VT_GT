@@ -40,7 +40,7 @@ var kafka = require('kafka-node'),
   consumer = new Consumer(
     client,
     [
-      { topic: 'test3072', partition: 0 }
+      { topic: 'EventTopic', partition: 0 }
     ],
     {
       autoCommit: false
@@ -60,7 +60,7 @@ io.sockets.on('connection', function (socket) {
     console.log('Message from Client: ' + data);
 
     payloads = [
-      { topic: 'test3072', messages: data, partition: 0 }
+      { topic: 'EventTopic', messages: data, partition: 0 }
     ];
 
     producer.send(payloads, function (err, data) {
