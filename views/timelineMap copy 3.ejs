@@ -1,0 +1,436 @@
+<!doctype html>
+<html lang="en">
+
+<% include ./headers/header %>
+<style>
+    .ol-overlay .ol-fullscreen-image.ol-has-title img {
+      padding-bottom: 6em;
+    }
+  </style>
+<body>
+
+    <div style="height:6%;line-height:60px;vertical-align:middle;">
+        <div>
+            보기모드 : <button class="cbutton" onclick="location.href='eventmap'">지 도</button>
+            <button class="cbutton" onclick="location.href='heatmap'">히트맵</button>
+            <button class="cbutton" onclick="location.href='timelinemap'">타임라인</button>
+
+        </div>
+        <!-- <div style="float:right;">
+                <button class="cbutton">키 퍼</button>
+                <button class="cbutton">감 시</button>
+                <button class="cbutton">교차로</button>
+            </div> -->
+    </div>
+
+    <!-- DIV pour la carte -->
+    <div id="map" style="height:94%;"></div>
+
+    <script type="text/javascript">
+
+        // Array to cache image style
+        var styleCache = {};
+        // Vector style
+        function getFeatureStyle(feature, resolution, sel) {
+            var k = feature.get("evtImg").match(/[^\\/]+$/)[0];
+            // console.log(k);
+            var style = styleCache[k];
+            if (!style) {
+                styleCache[k] = style = new ol.style.Style({
+                    image: new ol.style.Photo ({
+                        src: feature.get("evtImg"),
+                        radius: 20,
+                        // crop: $("#crop").prop('checked'),
+                        // kind: $('#kind').val(),
+                        // shadow: $("#shadow").prop('checked')?5:0,
+                        // onload: function() { vector.changed(); },
+                        // stroke: new ol.style.Stroke({
+                        //     width: Number($("#border").val()) + (sel ? 3 : 0),
+                        //     color: sel ? 'red' : '#fff'
+                        // })
+                    })
+                });
+            }
+            return [style];
+        }
+
+        // function getFeatureStyle (feature, resolution, sel) {
+        //     var k = $('#kind').val()+"_"+$("#border").val()+"_"+feature.get("img").match(/[^\\/]+$/)[0]+($("#shadow").prop('checked')?"_1":"_0")+($("#crop").prop('checked')?"_1":"_0")+(sel?"_1":"");
+        //     var style = styleCache[k];
+        //     if (!style) {
+        //         styleCache[k] = style = new ol.style.Style ({
+        //             image: new ol.style.Photo ({
+        //                 src: feature.get("img"),
+        //                 radius: 20,
+        //                 crop: $("#crop").prop('checked'),
+        //                 kind: $('#kind').val(),
+        //                 shadow: $("#shadow").prop('checked')?5:0,
+        //                 onload: function() { vector.changed(); },
+        //                 stroke: new ol.style.Stroke({
+        //                     width: Number($("#border").val()) + (sel ? 3 : 0),
+        //                     color: sel ? 'red' : '#fff'
+        //                 })
+        //             })
+        //         });
+        //     }
+        //     return [style];
+        // }
+
+        var cache = {};
+        function style(select) {    console.log(select);
+            return function (f) {
+                var style = cache[f.get('evtImg') + '-' + select];
+                if (!style) {
+                    var img = new ol.style.Photo({
+                        src: f.get('evtImg'),
+                        radius: select ? 20 : 30,
+                        shadow: true,
+                        stroke: new ol.style.Stroke({
+                            width: 2,
+                            color: select ? '#fff' : '#fafafa'
+                        }),
+                        onload: function () { f.changed(); }
+                    })
+                    style = cache[f.get('evtImg') + '-' + select] = new ol.style.Style({
+                        image: img
+                    })
+                }
+                return style;
+            }
+        };
+
+        // GeoJSON layer with a preview attribute
+        var vectorSource = new ol.source.Vector({
+            // url: '/data/fond_guerre2.geojson',
+            url: '/data/timeline.geojson',
+            projection: 'EPSG:3857',
+            format: new ol.format.GeoJSON()
+        });
+
+        var listenerKey = vectorSource.on('change', function(e) {
+            if (vectorSource.getState() == 'ready') {
+            ol.Observable.unByKey(listenerKey);
+            tline.refresh();
+            }
+        });
+
+        var vector = new ol.layer.Vector({
+            name: 'timeline-layer',
+            // style: style(),
+            source: vectorSource,
+            style: getFeatureStyle
+        });
+
+        var view = new ol.View({
+            projection: 'EPSG:4326',
+            center: [127.153789, 35.823685],
+            zoom: 16
+        });
+
+        var map = new ol.Map({
+            target: 'map',
+            layers: [
+                new ol.layer.Tile({
+                    // A layer must have a title to appear in the layerswitcher
+                    title: 'VWorld 2D',
+                    // Again set this layer as a base layer
+                    type: 'base',
+                    visible: false,
+                    source: new ol.source.XYZ({
+                        url: 'http://xdworld.vworld.kr:8080/2d/Base/service/{z}/{x}/{y}.png'
+                    })
+                }),
+                new ol.layer.Tile({
+                    // A layer must have a title to appear in the layerswitcher
+                    title: 'VWorld 2D 위성지도',
+                    // Again set this layer as a base layer
+                    type: 'base',
+                    visible: false,
+                    source: new ol.source.XYZ({
+                        url: 'http://xdworld.vworld.kr:8080/2d/Satellite/service/{z}/{x}/{y}.jpeg'
+                    })
+                }),
+                new ol.layer.Tile({
+                    // A layer must have a title to appear in the layerswitcher
+                    title: 'OSM',
+                    // Again set this layer as a base layer
+                    type: 'base',
+                    visible: true,
+                    source: new ol.source.OSM()
+                }),
+                vector
+            ],
+            view: view
+        });
+
+        var zoomslider = new ol.control.ZoomSlider();
+        map.addControl(zoomslider);
+
+        var layerSwitcher = new ol.control.LayerSwitcher({
+            tipLabel: 'Légende', // Optional label for button
+            groupSelectStyle: 'children' // Can be 'children' [default], 'group' or 'none'
+        });
+        map.addControl(layerSwitcher);
+
+        // Popup overlay
+        var popup = new ol.control.Overlay({ hideOnClick: true, className: 'zoom frompoint' });
+        map.addControl(popup);
+
+        // Set wipe parameters before/after vivibility change
+        popup.on("change:visible", function (e) {
+            // wipe needs to know the size of the element to clip on
+            if (/wipe/.test('zoom frompoint')) {
+                if (e.visible) {
+                    $(e.element).css("clip", "rect(0px," + map.getSize()[0] + "px," + map.getSize()[1] + "px,0px)");
+                } else {
+                    $(e.element).css("clip", "rect(0px,0px," + map.getSize()[1] + "px,0px)");
+                }
+            }
+            // Reset clip for others
+            else $(e.element).css("clip", "");
+        });
+
+
+          // One feature per year
+            // var features = [];
+            // for (var i=1; i<=31; i++) {
+            //     features.push({
+            //     text: i,
+            //     date: new Date('2020/07/'+i),
+            //     endDate: new Date('2020/07/'+i)
+            //     })
+            // }
+
+        // Create Timeline control when features are loaded
+        var tline = new ol.control.Timeline({
+            className: 'ol-zoomhover',
+            source: vectorSource,
+            interval: '3d',
+            graduation: 'day', // 'month'
+            zoomButton: false,
+            getHTML: function (f) { return '<img src="' + f.get('evtImg') + '"/>'; },
+            getFeatureDate: function (f) { return f.get('date'); },
+            endFeatureDate: function (f) {
+                var d = f.get('endDate');
+                // Create end date
+                if (!d) {
+                    d = new Date(f.get('date'));
+                    d = new Date(d.getTime() + (5 + 10 * Math.random()) * 10 * 24 * 60 * 60 * 1000);
+                    f.set('endDate', d);
+                }
+                return d;
+            }
+        });
+        map.addControl(tline);
+
+          
+            tline.setDate('2020-07-01');
+
+     
+
+            // Select a feature
+        tline.on('select', function(e){
+            // Center map on feature
+            // map.getView().animate({
+            //     center: e.feature.getGeometry().getCoordinates()
+            // });
+
+            popup.showImage(e.feature.get("evtImg").replace("_v.jpg","_p.jpg"), {
+                    coordinate: (/frompoint/.test('zoom frompoint') ? e.feature.getGeometry().getCoordinates() : null),
+                    title: e.feature.get("text") +'<br/>'
+                });
+
+            // Center time line on feature
+            tline.setDate(e.feature);
+            // Select feature on the map
+            select.getFeatures().clear();
+            select.getFeatures().push(e.feature);
+        });
+
+//   // Collapse the line
+  tline.on('collapse', function(e) {
+    if (e.collapsed) $('#map').addClass('noimg')
+    else $('#map').removeClass('noimg')
+  });
+//   // >croll the line
+  tline.on('scroll', function(e){
+    $('.options .date').text(e.date.toLocaleDateString());
+  });
+
+        // Select  interaction
+        var select = new ol.interaction.Select({ 
+            hitTolerance: 5, 
+            multi: true,
+            style: new ol.style.Style({
+                image: new ol.style.Icon({
+                    src: "/images/pin_red.png"
+                })           
+            }),
+            condition: ol.events.condition.singleClick
+        });
+        map.addInteraction(select);
+       
+        select.on('select', function(e){    console.log(e);
+            var f = e.selected[0];
+            if (f) {
+                popup.showImage(f.get("evtImg").replace("_v.jpg","_p.jpg"), {
+                    coordinate: (/frompoint/.test('zoom frompoint') ? f.getGeometry().getCoordinates() : null),
+                    title: f.get("text") +'<br/>'
+                });
+                // tline.setDate(f);
+
+                // var feature = e.element;
+                // popup.showImage(feature.get("img").replace("_v.jpg","_p.jpg"), {
+                //     coordinate: (/frompoint/.test($("#anim").val()) ? feature.getGeometry().getCoordinates() : null),
+                //     title: feature.get("text") +'<br/>'
+                //         +feature.get("commune")+" ("+feature.get("region")+" - "+feature.get("date").replace(".","/")+")<br/>"
+                //         +"&copy; "+feature.get("copy")+" - "+feature.get("author")
+                // });
+                // popup.showImage(feature.get("evtImg").replace("_v.jpg","_p.jpg"), {
+                //     coordinate: (/frompoint/.test('zoom frompoint') ? feature.getGeometry().getCoordinates() : null),
+                //     title: feature.get("text") +'<br/>'
+                // });
+            }
+        });
+
+            // Create Timeline control 
+            // var tline = new ol.control.Timeline({
+            //     // features: features,
+            //     source: vectorSource,
+            //     interval: '2d',  // 90 days = 3 month interval
+            //     graduation: 'day', // 'month'
+            //     minDate: new Date('2020-06-01'),
+            //     maxDate: new Date('2020-08-30'),
+            //     getHTML: function(f){ return '<img src="'+f.get('evtImg')+'"/> '+(f.get('text')||''); },
+            //     getFeatureDate: function(f){ return f.date; },
+            //     endFeatureDate: function(f) { return f.endDate }
+            // });
+            // map.addControl (tline);
+            // tline.setDate('2020-07-01');
+
+        // Set the date when ready
+        // setTimeout(function () { tline.setDate('2015'); });
+        // tline.addButton({
+        //     className: "go",
+        //     title: "GO!",
+        //     handleClick: function () {
+        //         go();
+        //     }
+        // });
+
+        // Select a feature
+        // tline.on('select', function (e) {
+        //     // Center map on feature
+        //     map.getView().animate({
+        //         center: e.feature.getGeometry().getCoordinates(),
+        //         zoom: 16
+        //     });
+        //     // Center time line on feature
+        //     tline.setDate(e.feature);
+        //     // Select feature on the map
+        //     select.getFeatures().clear();
+        //     select.getFeatures().push(e.feature);
+        // });
+
+
+        // Collapse the line
+        // tline.on('collapse', function (e) {
+        //     if (e.collapsed) $('#map').addClass('noimg')
+        //     else $('#map').removeClass('noimg')
+        // });
+
+        // scroll the line
+        // tline.on('scroll', function (e) {
+        //     // $('.options .date').text(e.date.toLocaleDateString());
+        //     var d = tline.roundDate(e.date, 'day')
+        //     // $('.dateStart').text(d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }));
+        //     // Filter features visibility
+        //     vectorSource.getFeatures().forEach(function (f) {
+        //         var dt = f.get('time') - e.date;
+        //         if (Math.abs(dt) > 1000 * 3600 * 12) {
+        //             f.setStyle([]);
+        //         } else {
+        //             f.setStyle();
+        //         }
+        //     });
+        // });
+
+        // tline.on('scroll', function(e){
+        //     // Start and end date
+        //     // $('.dateStart').text(e.dateStart.toLocaleDateString(undefined, {year: 'numeric', month: 'short', day: 'numeric'}));
+        //     // $('.dateEnd').text(e.dateEnd.toLocaleDateString(undefined, {year: 'numeric', month: 'short', day: 'numeric'}));
+        //     // Filter features visibility
+        //     vectorSource.getFeatures().forEach(function(f) {
+        //         var date = new Date(f.get('date'));
+        //         if (date<e.dateStart || date>e.dateEnd) {
+        //             f.setStyle([]);
+        //         } else {
+        //             f.setStyle();
+        //         }
+        //     });
+        // });
+
+        
+        // var select = new ol.interaction.Select({ hitTolerance: 5, style: style(true) });
+        // map.addInteraction(select);
+
+        // select.on('select', function(e){    console.log("---------");console.log(e);
+        //     var f = e.selected[0];
+        //     if (f) {
+        //         tline.setDate(f);
+        //     }
+        // });
+
+       
+
+       
+         // Control Select 
+        // var select = new ol.interaction.Select({});
+        // map.addInteraction(select);
+
+        // // Remove selection on close
+        // popup.on("change:visible", function(e){ if (!e.visible) select.getFeatures().clear(); });
+
+        // // On selected => show/hide popup
+        // select.getFeatures().on('add', function(e) {	console.log("000000000000");
+        //     var feature = e.element;
+        //     popup.showImage(feature.get("evtImg").replace("_v.jpg","_p.jpg"), {
+        //         coordinate: (/frompoint/.test('zoom frompoint') ? feature.getGeometry().getCoordinates() : null),
+        //         title: feature.get("text") +'<br/>'
+        //     });
+        //     /*
+        //     var img = $("<img>").attr("src", feature.get("img").replace("_v.jpg","_p.jpg"));
+        //     popup.show(img.get(0).outerHTML, /frompoint/.test($("#anim").val()) ? feature.getGeometry().getCoordinates():null);
+        //     */
+        // });
+
+          // Show feature on select
+        // var select = new ol.interaction.Select({ hitTolerance: 5, style: style(true) });
+        // map.addInteraction(select);
+        
+        
+        // select.on('select', function(e){    console.log(e);
+        //     var f = e.selected[0];
+        //     if (f) {
+        //     // Center
+        //     tline.setDate(f.get('date'));
+        //     // Show info
+        //             var info = $("#select").html("");
+        //             $("<img>").attr('src',f.get("img")).appendTo(info);
+        //             $("<p>").text(f.get("text")).appendTo(info);
+        //     $("<p>").text(f.get("commune")+" ("+f.get("region")+" - "
+        //         + (new Date(f.get("date"))).toLocaleDateString(undefined, {year: 'numeric', month: 'short', day: 'numeric'})
+        //         + ")").appendTo(info);
+        //             $("<p>").addClass('copy').html("&copy; "+f.get("copy")+" - "+f.get("author")).appendTo(info);
+        //         } else {
+        //     $("#select").html("<p>Select an image.</p>");
+        //     }
+        // });
+
+
+    </script>
+
+
+</body>
+
+</html>

@@ -20,12 +20,14 @@
 
 
     <script type="text/javascript">
+
         var view = new ol.View({
             projection: 'EPSG:4326',
             center: [106.764194, 10.854639],
             //center: [127.153789, 35.823685],
             zoom: 14
         });
+
         var map = new ol.Map({
             target: 'map',
             layers: [
@@ -58,7 +60,7 @@
                     source: new ol.source.OSM()
                 })
             ],
-            // interactions: ol.interaction.defaults({ altShiftDragRotate:false, pinchRotate:false }),
+            interactions: ol.interaction.defaults({ altShiftDragRotate:false, pinchRotate:false }),
             view: view
         });
 
@@ -86,12 +88,14 @@
             projection: 'EPSG:3857',
             format: new ol.format.GeoJSON()
         });
+
         var vector_intersection = new ol.layer.Vector({
             name: 'intersection-layer',
             source: vectorSource_intersection,
             renderOrder: ol.ordering.yOrdering(),
             style: getFeatureStyle
         });
+
         map.addLayer(vector_intersection);
 
         // GeoJSON layer
@@ -100,6 +104,7 @@
             projection: 'EPSG:3857',
             format: new ol.format.GeoJSON()
         });
+
         var vector_cctv = new ol.layer.Vector({
             name: 'cctv-layer',
             source: vectorSource_cctv,
@@ -107,6 +112,7 @@
             renderOrder: ol.ordering.yOrdering(),
             style: getFeatureStyle
         });
+
         map.addLayer(vector_cctv);
 
          // GeoJSON layer
@@ -115,6 +121,7 @@
             projection: 'EPSG:3857',
             format: new ol.format.GeoJSON()
         });
+
         var vector_keeper = new ol.layer.Vector({
             name: 'keeper-layer',
             source: vectorSource_keeper,
@@ -122,6 +129,7 @@
             renderOrder: ol.ordering.yOrdering(),
             style: getFeatureStyle
         });
+
         map.addLayer(vector_keeper);
 
         // var home = new ol.Overlay.Placemark({
@@ -129,6 +137,7 @@
         //     // backgroundColor : 'yellow',
         //     contentColor: '#000',
         // });
+
         // map.addOverlay(home);
         // home.show([106.764194, 10.854639]);
 
@@ -148,11 +157,13 @@
         } else {
             vector_intersection.setVisible(true);
         }
+
         if (currZoom < 16) {
             vector_cctv.setVisible(false);
         } else {
             vector_cctv.setVisible(true);
         }
+
         if (currZoom < 17) {
             vector_keeper.setVisible(false);
         } else {
@@ -170,11 +181,13 @@
                 } else {
                     vector_intersection.setVisible(true);
                 }
+
                 if (currZoom < 16) {
                     vector_cctv.setVisible(false);
                 } else {
                     vector_cctv.setVisible(true);
                 }
+
                 if (currZoom < 17) {
                     vector_keeper.setVisible(false);
                 } else {
@@ -182,9 +195,9 @@
                 }
             }
         });
-      
+
         // Select  interaction
-        var select = new ol.interaction.Select({
+        var select_poi = new ol.interaction.Select({
             hitTolerance: 10,
             multi: true,
             style: new ol.style.Style({
@@ -193,14 +206,14 @@
                 })           
             })
         });
-        map.addInteraction(select);
+        map.addInteraction(select_poi);
 
         // Select control
         var popup = new ol.Overlay.PopupFeature({
             popupClass: "default anim", //"tooltips", "warning" "black" "default", "tips", "shadow",
             positioning: "bottom-center",            
             offset: [0, -20],
-            select: select,
+            select: select_poi,
             canFix: true,
             onclose: function(f) {
                 console.log("close");
@@ -261,6 +274,7 @@
                 duration: duration / 2
             }, callback);
         }
+
         var source_temp = new ol.source.Vector({
             wrapX: false
         });
@@ -271,7 +285,7 @@
 
         var evt_popup = new ol.Overlay.Popup({
             popupClass: "black", //"tooltips", "warning" "black" "default", "tips", "shadow",
-            closeBox: true,
+            closeBox: false,
             onclose: function () { console.log("You close the box"); },
             positioning: "bottom-center",
             autoPan: true,
@@ -281,21 +295,24 @@
 
         var evt_keeper_popup = new ol.Overlay.Popup({
             popupClass: "warning", //"tooltips", "warning" "black" "default", "tips", "shadow",
-            closeBox: true,
+            closeBox: false,
             onclose: function () { console.log("You close the box"); },
             positioning: "bottom-center",
             autoPan: true,
             autoPanAnimation: { duration: 100 }
         });
         map.addOverlay(evt_keeper_popup);
-        
+
         var socket = io.connect();
+
         // 서버로부터 메시지 수신
         socket.on('kafka_consumer', function (data) {
             console.log(data);
             var payload = JSON.parse(data.value);
+
             if (payload.msg_code == 'EVT_001') {
                 flyTo(payload.msg_loc, function () { });
+
                 var content = "";
                 content += "<div><img src='" + payload.img + "' width='350px' height='250px' /></div>";
                 content += "<div style='text-align:center;margin: 1em 1em 1em 1em;'>";
@@ -304,6 +321,7 @@
                 evt_popup.show(payload.msg_loc, content);
             } else if (payload.msg_code == 'EVT_003') {
                 // console.log(payload.msg_loc);
+
                 var x_loc = payload.msg_loc[0];
                 var y_loc = payload.msg_loc[1];
                
@@ -368,28 +386,54 @@
                 source_temp.addFeature(feature);
             }
         });
-        
-        // On selected => show/hide popup
-        select.getFeatures().on(['add'], function(e) { 
-            var feature = e.element;
-            if (feature.get("code") == "EVT_003") {
-                var content = "";
-                content += "<img src='"+feature.get("img")+"'/>";
-                content += feature.get("name");
-                if (feature.get("level") == 1) {
-                    evt_keeper_popup.setPopupClass("default black");
-                } else if (feature.get("level") == 2) {
-                    evt_keeper_popup.setPopupClass("orange black");
-                } else if (feature.get("level") == 3) {
-                    evt_keeper_popup.setPopupClass("red black");
-                } 
-                evt_keeper_popup.show(feature.getGeometry().getFirstCoordinate(), content); 
-            }
+
+        select_poi.on('select', function(e){    
+            console.log("---------")
+            console.log(e);
+            var f = e.selected[0];
+            
+            if (f) {
+                console.log(f.get('code'));
+            }   
+            // if (f) {
+            // // Center
+            // tline.setDate(f.get('date'));
+            // // Show info
+            //         var info = $("#select").html("");
+            //         $("<img>").attr('src',f.get("img")).appendTo(info);
+            //         $("<p>").text(f.get("text")).appendTo(info);
+            // $("<p>").text(f.get("commune")+" ("+f.get("region")+" - "
+            //     + (new Date(f.get("date"))).toLocaleDateString(undefined, {year: 'numeric', month: 'short', day: 'numeric'})
+            //     + ")").appendTo(info);
+            //         $("<p>").addClass('copy').html("&copy; "+f.get("copy")+" - "+f.get("author")).appendTo(info);
+            //     } else {
+            // $("#select").html("<p>Select an image.</p>");
+            // }
         });
-        
-        select.getFeatures().on(['remove'], function(e) {
-            evt_keeper_popup.hide(); 
-        })
+
+
+        // On selected => show/hide popup
+        // select_evt.getFeatures().on(['add'], function(e) {  console.log(e);
+        //     var feature = e.element;
+        //     if (feature.get("code") == "" || feature.get("code") == null) { console.log("222222222222");
+        //         popup.show();
+        //     } else if (feature.get("code") == "EVT_003") {  
+        //         var content = "";
+        //         content += "<img src='"+feature.get("img")+"'/>";
+        //         content += feature.get("name");
+        //         if (feature.get("level") == 1) {
+        //             evt_keeper_popup.setPopupClass("default black");
+        //         } else if (feature.get("level") == 2) {
+        //             evt_keeper_popup.setPopupClass("orange black");
+        //         } else if (feature.get("level") == 3) {
+        //             evt_keeper_popup.setPopupClass("red black");
+        //         } 
+        //         evt_keeper_popup.show(feature.getGeometry().getFirstCoordinate(), content); 
+        //     }
+        // });
+        // select_evt.getFeatures().on(['remove'], function(e) {
+        //     evt_keeper_popup.hide(); 
+        // })
     </script>
 
 </body>
