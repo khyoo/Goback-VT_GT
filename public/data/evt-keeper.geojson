@@ -12,6 +12,7 @@
             },
             "properties": {
                 "title": "키퍼 1",
+                "type": "keeper",
                 "evtSubType": "위반 / 지정 차로 위반",
                 "locAddr": "1번 교차로 그룹",
                 "chargeName": "MR.Kim",
@@ -32,6 +33,7 @@
             },
             "properties": {
                 "title": "키퍼 2",
+                "type": "keeper",
                 "evtSubType": "위반 / 지정 차로 위반",
                 "locAddr": "1번 교차로 그룹",
                 "chargeName": "MR.Kim",
@@ -52,6 +54,7 @@
             },
             "properties": {
                 "title": "키퍼 3",
+                "type": "keeper",
                 "evtSubType": "위반 / 지정 차로 위반",
                 "locAddr": "1번 교차로 그룹",
                 "chargeName": "MR.Kim",

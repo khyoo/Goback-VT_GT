@@ -11,7 +11,8 @@
                 ]
             },
             "properties": {
-                "title": "교차로 1",                
+                "title": "교차로 1",      
+                "type": "inters",          
                 "evtSubType": "위반 / 지정 차로 위반",
                 "locAddr": "1번 교차로 그룹",
                 "chargeName": "MR.Kim",
@@ -32,6 +33,7 @@
             },
             "properties": {
                 "title": "교차로 2",
+                "type": "inters",
                 "evtSubType": "위반 / 지정 차로 위반",
                 "locAddr": "1번 교차로 그룹",
                 "chargeName": "MR.Kim",
@@ -52,6 +54,7 @@
             },
             "properties": {
                 "title": "교차로 3",
+                "type": "inters",
                 "evtSubType": "위반 / 지정 차로 위반",
                 "locAddr": "1번 교차로 그룹",
                 "chargeName": "MR.Kim",
@@ -72,6 +75,7 @@
             },
             "properties": {
                 "title": "교차로 4",
+                "type": "inters",
                 "evtSubType": "위반 / 지정 차로 위반",
                 "locAddr": "1번 교차로 그룹",
                 "chargeName": "MR.Kim",
@@ -92,6 +96,7 @@
             },
             "properties": {
                 "title": "교차로 5",
+                "type": "inters",
                 "evtSubType": "위반 / 지정 차로 위반",
                 "locAddr": "1번 교차로 그룹",
                 "chargeName": "MR.Kim",
@@ -112,6 +117,7 @@
             },
             "properties": {
                 "title": "교차로 6",
+                "type": "inters",
                 "evtSubType": "위반 / 지정 차로 위반",
                 "locAddr": "1번 교차로 그룹",
                 "chargeName": "MR.Kim",

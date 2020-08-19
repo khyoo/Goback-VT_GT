@@ -23274,7 +23274,7 @@ ol.Overlay.PopupFeature.prototype._getHtml = function(feature) {
   if (this.get('canFix')) {
     ol.ext.element.create('I', { className:'ol-fix', parent: html })
       .addEventListener('click', function(){ 
-        // this.element.classList.toggle('ol-fixed');
+        this.element.classList.toggle('ol-fixed');
       }.bind(this));
   }
   var template = this._template;
@@ -23340,10 +23340,53 @@ ol.Overlay.PopupFeature.prototype._getHtml = function(feature) {
         content = (a.before||'') + val + (a.after||'');
         var maxc = this.get('maxChar') || 200;
         if (typeof(content) === 'string' && content.length>maxc) content = content.substr(0,maxc)+'[...]';
-        ol.ext.element.create('DIV', { html: content, parent: html, className: "cus-popup-body" });      
+        ol.ext.element.create('DIV', { html: content, parent: html, className: "cus-popup-body" });
       }
     }
+    
+    var div_btns = ol.ext.element.create('DIV', { style: { 'margin': '10px', 'text-align': 'center' }, parent: html });
+    content = '자세히 보기';        
+    ol.ext.element.create('BUTTON', { html: content, type: 'button', style: { width: '120px' }, parent: div_btns })
+    content = '&nbsp;&nbsp;&nbsp;';        
+    ol.ext.element.create('SPAN', { html: content, parent: div_btns })
+    content = '타임라인 보기';
+    ol.ext.element.create('BUTTON', { html: content, type: 'button', style: { width: '120px' }, parent: div_btns })
+      .addEventListener('click', function() {
+          if (feature.getGeometry().getType()==='Point') {
+            this.getMap().getView().animate({
+              center: feature.getGeometry().getFirstCoordinate(),
+              zoom:  Math.max(this.getMap().getView().getZoom(), 18)
+            });        
 
+            select.getFeatures().clear();
+
+            if (feature.get('type') == 'inters') {
+              
+              console.log(tlineSource_device.url);
+
+              popup.hide();
+              map.addLayer(tline_device);
+              map.addControl(tline); 
+            } else if (feature.get('type') == 'cctv') {
+              
+              popup.hide();
+              map.addLayer(tline_device);
+              map.addControl(tline); 
+            } else if (feature.get('type') == 'keeper') {
+              
+              popup.hide();
+              map.addLayer(tline_keeper);
+              map.addControl(tline2); 
+
+              map.addLayer(vector_tline_temp);   
+            }
+                       
+            // tline.toggle();            
+          } else  {
+            var ext = feature.getGeometry().getExtent();
+            this.getMap().getView().fit(ext, { duration:1000 });
+          }
+        }.bind(this));
     /*    Original Source
     var tr, table = ol.ext.element.create('TABLE', { parent: html });
     var atts = template.attributes;
@@ -23383,19 +23426,22 @@ ol.Overlay.PopupFeature.prototype._getHtml = function(feature) {
     }
     */
   }
+
   // Zoom button
-  ol.ext.element.create('BUTTON', { className: 'ol-zoombt', parent: html })
-    .addEventListener('click', function() {
-      if (feature.getGeometry().getType()==='Point') {
-        this.getMap().getView().animate({
-          center: feature.getGeometry().getFirstCoordinate(),
-          zoom:  Math.max(this.getMap().getView().getZoom(), 18)
-        });
-      } else  {
-        var ext = feature.getGeometry().getExtent();
-        this.getMap().getView().fit(ext, { duration:1000 });
-      }
-    }.bind(this));
+  // ol.ext.element.create('BUTTON', { className: 'ol-zoombt', parent: html })
+  //   .addEventListener('click', function() {
+  //     if (feature.getGeometry().getType()==='Point') {
+  //       this.getMap().getView().animate({
+  //         center: feature.getGeometry().getFirstCoordinate(),
+  //         zoom:  Math.max(this.getMap().getView().getZoom(), 18)
+  //       });
+  //     } else  {
+  //       var ext = feature.getGeometry().getExtent();
+  //       this.getMap().getView().fit(ext, { duration:1000 });
+  //     }
+  //   }.bind(this));
+
+
   // Counter
   if (this._features.length > 1) {
     var div = ol.ext.element.create('DIV', { className: 'ol-count', parent: html });

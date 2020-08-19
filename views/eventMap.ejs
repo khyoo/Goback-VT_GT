@@ -2,6 +2,63 @@
 <html lang="en">
 
 <% include ./headers/header %>
+<style>
+    .ol-overlay .ol-fullscreen-image.ol-has-title img {
+        padding-bottom: 6em;
+    }
+    .ol-attribution {
+        bottom: 6.5em;
+        transition: .3s;
+    }
+    .noimg .ol-attribution {
+        bottom: 0.5em;
+    }
+    .ol-timeline img {
+        max-height: 2.2em;
+        float: left;
+        margin: .1em .5em .1em .1em
+    }
+    .ol-timeline .ol-scroll {        
+        height: 10em;
+    }
+    button.go:before {
+      content: '';
+      position: absolute;
+      width: 0;
+      height: .8em;
+      background: transparent;
+      border: 0.4em solid transparent;
+      border-right: 0;
+      border-left: .6em solid #fff;
+      left: 50%;
+      right: 50%;
+      transform: translate(-50%, -50%);
+      box-sizing: border-box;
+    }
+    .running button.go:before {
+      background: transparent;
+      width: .2em;
+      border: 0;
+      box-shadow: .2em 0, -.2em 0;
+    }
+    button.close:before,
+    button.close:after {        
+        content: "";
+        position: absolute;
+        background-color: currentColor;
+        top: 50%;
+        left: 50%;
+        width: 1em;
+        height: .1em;
+        border-radius: .1em;
+        -webkit-transform: translate(-50%, -50%) rotate(45deg);
+                transform: translate(-50%, -50%) rotate(45deg);
+    }
+    button.close:before {
+        -webkit-transform: translate(-50%, -50%) rotate(-45deg);
+                transform: translate(-50%, -50%) rotate(-45deg);
+    }
+</style>
 
 <body>
 
@@ -61,6 +118,25 @@
             // interactions: ol.interaction.defaults({ altShiftDragRotate:false, pinchRotate:false }),
             view: view
         });
+
+        var contextmenu = new ContextMenu({
+            width: 170,
+            defaultItems: true,
+            items: [                
+                {
+                text: '좌표 확인',
+                classname: 'some-style-class',
+                // icon: 'img/marker.png',
+                callback: coords_chk
+                },
+                '-' // this is a separator
+            ]
+        });
+        map.addControl(contextmenu);
+
+        function coords_chk(obj) {
+            alert(obj.coordinate);
+        }
 
         // Array to cache image style
         var styleCache = {};
@@ -390,6 +466,418 @@
         select.getFeatures().on(['remove'], function(e) {
             evt_keeper_popup.hide(); 
         })
+
+        var cache = {};
+        function style(select) {
+            // console.log(select);
+            return function (f) {
+                var style = cache[f.get('evtImg') + '-' + select];
+                if (!style) {
+                    var img = new ol.style.Photo({
+                        src: f.get('evtImg'),
+                        radius: select ? 35 : 25,
+                        crop: true,
+                        kind: 'anchored',
+                        shadow: true,
+                        stroke: new ol.style.Stroke({
+                            width: select ? 3 : 2,
+                            color: select ? '#D04545' : '#92A7DA'
+                        }),
+                        onload: function () { f.changed(); }
+                    })
+                    style = cache[f.get('evtImg') + '-' + select] = new ol.style.Style({
+                        image: img,
+                        zIndex: select ? 100 : 90
+                    })
+                }
+                return style;
+            }
+        };
+
+        // GeoJSON layer with a preview attribute
+        var tlineSource_device = new ol.source.Vector({            
+            url: '/data/timeline_device.geojson',
+            projection: 'EPSG:3857',
+            format: new ol.format.GeoJSON()
+        });
+
+        var tlineListenerKey_device = tlineSource_device.on('change', function (e) {
+            if (tlineSource_device.getState() == 'ready') {
+                ol.Observable.unByKey(tlineListenerKey_device);
+                tline.refresh();
+            }
+        });
+
+        var tline_device = new ol.layer.Vector({
+            name: 'timeline-layer',
+            style: style(),
+            source: tlineSource_device
+        });      
+
+        var tlineSource_keeper = new ol.source.Vector({            
+            url: '/data/timeline_keeper.geojson',
+            projection: 'EPSG:3857',
+            format: new ol.format.GeoJSON()
+        });
+
+        var tlineListenerKey_keeper = tlineSource_keeper.on('change', function (e) {
+            if (tlineSource_keeper.getState() == 'ready') {
+                ol.Observable.unByKey(tlineListenerKey_keeper);
+                tline2.refresh();
+            }
+        });
+
+        var tline_keeper = new ol.layer.Vector({
+            name: 'timeline-layer2',
+            style: style(),
+            source: tlineSource_keeper
+        });      
+
+        var tline = new ol.control.Timeline({
+            className: 'ol-zoomhover',
+            source: tlineSource_device,
+            interval: '3d',
+            graduation: 'day', // 'month'
+            minDate: new Date('2020-06-28'),
+            zoomButton: true,
+            getHTML: function (f) { return '<img src="' + f.get('evtImg') + '"/>' + (f.get('text') || ''); },
+            getFeatureDate: function (f) {
+                return f.get('date');
+            },
+            endFeatureDate: function (f) {
+                var d = f.get('endDate');
+                // Create end date
+                if (!d) {
+                    d = new Date(f.get('date'));
+                    d.setDate(d.getDate() + 3);
+                    // d = new Date( d.getTime() + (5 + 10*Math.random())*10*24*60*60*1000);
+                    f.set('endDate', d);
+                }
+                return d;
+            }
+        });
+      
+        // Select a feature
+        tline.on('select', function (e) {   //console.log(e);    
+            // Center time line on feature
+            // tline.setDate(e.feature);
+
+            // Center map on feature
+            map.getView().animate({
+                center: e.feature.getGeometry().getCoordinates()
+            });
+
+            popup.showImage(e.feature.get("evtImg").replace("_v.jpg", "_p.jpg"), {
+                coordinate: (/wipe/.test('zoom') ? e.feature.getGeometry().getCoordinates() : null),
+                title: e.feature.get("text") + '<br/>'
+            });
+
+            // Select feature on the map
+            select.getFeatures().clear();
+            select.getFeatures().push(e.feature);
+        });
+
+        tline.addButton ({
+            className: "go",
+            title: "GO!",
+            handleClick: function() {
+                go();
+            }
+        });
+
+        tline.addButton ({
+            className: "close",
+            title: "Close",
+            handleClick: function() {
+                if (running) clearTimeout(running);
+                map.removeLayer(tline_device);
+                map.removeControl(tline); 
+            }
+        });
+
+        // Collapse the line
+        tline.on('collapse', function (e) {
+            if (e.collapsed) $('#map').addClass('noimg')
+            else $('#map').removeClass('noimg')
+        });
+
+        // scroll the line
+        tline.on('scroll', function (e) {
+            tlineSource_device.getFeatures().forEach(function (f) {
+                var date = new Date(f.get('date'));
+                if (date < e.dateStart || date > e.dateEnd) {
+                    f.setStyle([]);
+                } else {
+                    f.setStyle();
+                }
+            });
+        });
+
+        // var select = new ol.interaction.Select({ hitTolerance: 5, style: style(true) });
+        // map.addInteraction(select);
+
+        // select.on('select', function (e) {      //console.log(e);            
+        //     var f = e.selected[0];
+        //     if (f) {
+        //         // Center time line on feature
+        //         // tline.setDate(f);
+
+        //         // Center map on feature
+        //         map.getView().animate({
+        //             center: f.getGeometry().getCoordinates()
+        //         });
+
+        //         popup.showImage(f.get("evtImg").replace("_v.jpg", "_p.jpg"), {
+        //             coordinate: (/wipe/.test('zoom') ? f.getGeometry().getCoordinates() : null),
+        //             title: f.get("text") + '<br/>'
+        //         });
+        //     }
+        // });
+
+        // Run on the timeline
+        var running = false; 
+        var start = new Date('2020');
+        var end = new Date('2021');
+        function go(next) {
+            var date = tline.getDate();
+            if (running) clearTimeout(running);
+            if (!next) {
+            // stop
+            if (date>start && date<end && running) {
+                running = false;
+                tline.element.classList.remove('running');
+                return;
+            }
+            if (date > end) {
+                date = start;
+            }
+            }
+            if (date > end) {
+            tline.element.classList.remove('running');
+            return;
+            }
+            if (date < start) {
+            date = start;
+            }
+            // 1 day
+            date = new Date(date.getTime() + 24*60*60*1000);
+            tline.setDate(date, { anim:false });
+            // next
+            tline.element.classList.add('running');
+            running = setTimeout(function() { go(true); }, 700);
+        }
+
+
+
+
+        var tline2 = new ol.control.Timeline({
+            className: 'ol-zoomhover',
+            source: tlineSource_keeper,
+            interval: '2d',
+            graduation: 'day', // 'month'
+            minDate: new Date('2020-07-01'),
+            zoomButton: true,
+            getHTML: function (f) { return '<img src="' + f.get('evtImg') + '"/>' + (f.get('text') || ''); },
+            getFeatureDate: function (f) {
+                return f.get('date');
+            },
+            endFeatureDate: function (f) {
+                var d = f.get('endDate');
+                // Create end date
+                if (!d) {
+                    d = new Date(f.get('date'));
+                    d.setDate(d.getDate() + 3);
+                    // d = new Date( d.getTime() + (5 + 10*Math.random())*10*24*60*60*1000);
+                    f.set('endDate', d);
+                }
+                return d;
+            }
+        });
+      
+        // Select a feature
+        tline2.on('select', function (e) {   //console.log(e);    
+            // Center time line on feature
+            // tline.setDate(e.feature);
+
+            // Center map on feature
+            map.getView().animate({
+                center: e.feature.getGeometry().getCoordinates()
+            });
+
+            popup.showImage(e.feature.get("evtImg").replace("_v.jpg", "_p.jpg"), {
+                coordinate: (/wipe/.test('zoom') ? e.feature.getGeometry().getCoordinates() : null),
+                title: e.feature.get("text") + '<br/>'
+            });
+
+            // Select feature on the map
+            select.getFeatures().clear();
+            select.getFeatures().push(e.feature);
+        });
+
+        tline2.addButton ({
+            className: "go",
+            title: "GO!",
+            handleClick: function() {
+                go2();
+            }
+        });
+
+        tline2.addButton ({
+            className: "close",
+            title: "Close",
+            handleClick: function() {
+                if (running2) clearTimeout(running2);
+                map.removeLayer(tline_keeper);
+                map.removeControl(tline2); 
+
+                map.removeLayer(vector_tline_temp); 
+            }
+        });
+
+        // Collapse the line
+        tline2.on('collapse', function (e) {
+            if (e.collapsed) $('#map').addClass('noimg')
+            else $('#map').removeClass('noimg')
+        });
+
+        var source_tline_temp = new ol.source.Vector({
+            wrapX: false
+        });
+        var vector_tline_temp = new ol.layer.Vector({
+            source: source_tline_temp
+        });
+        
+        // scroll the line
+        tline2.on('scroll', function (e) {
+            tlineSource_keeper.getFeatures().forEach(function (f) { console.log(f.getGeometry().getCoordinates());
+                var date = new Date(f.get('date'));
+                if (date > e.dateStart) {
+                    f.setStyle([]);
+                } else {
+                    
+                    var x_loc = f.getGeometry().getCoordinates()[0];
+                    var y_loc = f.getGeometry().getCoordinates()[1];
+                
+                    var geom = new ol.geom.Point([x_loc, y_loc]);
+                    var feature = new ol.Feature({
+                        geometry: geom,
+                        // code: f.get('msg_code'),
+                        type: f.get('msg_type'),
+                        level: f.get('msg_level')
+                        // name: f.get('msg_name'),
+                        // img: f.get('img')
+                    });
+                    if (f.get('msg_level') == 1) {
+                        feature.setStyle(new ol.style.Style({
+                            fill: new ol.style.Fill({
+                                color: 'rgba(255, 255, 255, 0.2)'
+                            }),
+                            stroke: new ol.style.Stroke({
+                                color: '#ffffff',
+                                width: 2
+                            }),
+                            image: new ol.style.Circle({
+                                radius: 7,
+                                fill: new ol.style.Fill({
+                                color: '#008CBA'
+                                })
+                            })
+                        }));
+                    } else if (f.get('msg_level') == 2) {
+                        feature.setStyle(new ol.style.Style({
+                            fill: new ol.style.Fill({
+                                color: 'rgba(255, 255, 255, 0.2)'
+                            }),
+                            stroke: new ol.style.Stroke({
+                                color: '#ffffff',
+                                width: 2
+                            }),
+                            image: new ol.style.Circle({
+                                radius: 7,
+                                fill: new ol.style.Fill({
+                                color: '#ffcc33'
+                                })
+                            })
+                        }));
+                    } else if (f.get('msg_level') == 3) {
+                        feature.setStyle(new ol.style.Style({
+                            fill: new ol.style.Fill({
+                                color: 'rgba(255, 255, 255, 0.2)'
+                            }),
+                            stroke: new ol.style.Stroke({
+                                color: '#ffffff',
+                                width: 2
+                            }),
+                            image: new ol.style.Circle({
+                                radius: 7,
+                                fill: new ol.style.Fill({
+                                color: '#CC0000'
+                                })
+                            })
+                        }));
+                    }
+                    source_tline_temp.addFeature(feature);
+
+                    if (f.get('msg_level') == 2 || f.get('msg_level') == 3) {
+                        f.setStyle();
+                    }
+                }
+            });
+        });
+
+        // var select = new ol.interaction.Select({ hitTolerance: 5, style: style(true) });
+        // map.addInteraction(select);
+
+        // select.on('select', function (e) {      //console.log(e);            
+        //     var f = e.selected[0];
+        //     if (f) {
+        //         // Center time line on feature
+        //         // tline.setDate(f);
+
+        //         // Center map on feature
+        //         map.getView().animate({
+        //             center: f.getGeometry().getCoordinates()
+        //         });
+
+        //         popup.showImage(f.get("evtImg").replace("_v.jpg", "_p.jpg"), {
+        //             coordinate: (/wipe/.test('zoom') ? f.getGeometry().getCoordinates() : null),
+        //             title: f.get("text") + '<br/>'
+        //         });
+        //     }
+        // });
+
+         // Run on the timeline
+        var running2 = false; 
+        var start2 = new Date('2020');
+        var end2 = new Date('2021');
+        function go2(next) {
+            var date = tline2.getDate();
+            if (running2) clearTimeout(running2);
+            if (!next) {
+            // stop
+            if (date>start2 && date<end2 && running2) {
+                running2 = false;
+                tline2.element.classList.remove('running');
+                return;
+            }
+            if (date > end2) {
+                date = start2;
+            }
+            }
+            if (date > end2) {
+            tline2.element.classList.remove('running');
+            return;
+            }
+            if (date < start2) {
+            date = start2;
+            }
+            // 1 day
+            date = new Date(date.getTime() + 24*60*60*1000);
+            tline2.setDate(date, { anim:false });
+            // next
+            tline2.element.classList.add('running');
+            running2 = setTimeout(function() { go2(true); }, 700);
+        }
     </script>
 
 </body>

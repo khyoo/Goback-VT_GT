@@ -1,0 +1,299 @@
+{
+    "type": "FeatureCollection",
+    "features": [
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    106.76381036639215,
+                    10.85693280911073
+                ]
+            },
+            "properties": {
+                "ref": "APD0004328",
+                "cpost": "02440",
+                "region": "Picardie",
+                "dep": "2",
+                "commune": "Remigny",
+                "text": "Camouflage avec les moyens de fortune",
+                "author": "Opérateur D ; Brissy, Edouard",
+                "date": "2020/07/01",
+                "evtImg": "/image_road/road_1.png"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    106.76381036639215,
+                    10.85693280911073
+                ]
+            },
+            "properties": {
+                "ref": "APD0005719",
+                "cpost": "59220",
+                "region": "Nord-Pas-de-Calais",
+                "dep": "59",
+                "commune": "Denain",
+                "text": "Visite de la délégation de la Conférence de la paix à l'entrée",
+                "author": "Opérateur D ; Sélince",
+                "date": "2020/07/02",
+                "evtImg": "/image_road/road_2.png"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    106.76381036639215,
+                    10.85693280911073
+                ]
+            },
+            "properties": {
+                "ref": "APTH002327",
+                "cpost": "51600",
+                "region": "",
+                "dep": "51",
+                "commune": "Souain-Perthes-lès-Hurlus",
+                "text": "Prisonniers allemands au bord de la route",
+                "author": "Opérateur Théta (code armée, photographe)",
+                "date": "2020/07/03",
+                "evtImg": "/image_road/road_3.png"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    106.76381036639215,
+                    10.85693280911073
+                ]
+            },
+            "properties": {
+                "ref": "APTH002364",
+                "cpost": "51800",
+                "region": "",
+                "dep": "51",
+                "commune": "Ripont",
+                "text": "Emplacement du village",
+                "author": "Opérateur Théta (code armée, photographe)",
+                "date": "2020/07/04",
+                "evtImg": "/image_road/road_4.png"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    106.76381036639215,
+                    10.85693280911073
+                ]
+            },
+            "properties": {
+                "ref": "APTH002125",
+                "cpost": "02130",
+                "region": "",
+                "dep": "2",
+                "commune": "Vaux",
+                "text": "Prisonniers allemands faisant la moisson",
+                "author": "Opérateur Théta (code armée, photographe)",
+                "date": "2020/07/05",
+                "evtImg": "/image_road/road_5.png"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    106.76381036639215,
+                    10.85693280911073
+                ]
+            },
+            "properties": {
+                "ref": "APTH002382",
+                "cpost": "51490",
+                "region": "",
+                "dep": "51",
+                "commune": "Pontfaverger",
+                "text": "Ruines",
+                "author": "Opérateur Théta (code armée, photographe)",
+                "date": "2020/07/06",
+                "evtImg": "/image_road/road_6.png"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    106.76381036639215,
+                    10.85693280911073
+                ]
+            },
+            "properties": {
+                "ref": "APTH002231",
+                "cpost": "02220",
+                "region": "",
+                "dep": "2",
+                "commune": "Vesle",
+                "text": "Américains dans leur nouvelles positions",
+                "author": "Opérateur Théta (code armée, photographe)",
+                "date": "2020/07/07",
+                "evtImg": "/image_road/road_7.png"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    106.76381036639215,
+                    10.85693280911073
+                ]
+            },
+            "properties": {
+                "ref": "APTH002060",
+                "cpost": "02200",
+                "region": "",
+                "dep": "2",
+                "commune": "Soissons",
+                "text": "Façade ouest, état en 1918",
+                "author": "Opérateur Théta (code armée, photographe)",
+                "date": "2020/07/08",
+                "evtImg": "/image_road/road_8.png"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    106.76381036639215,
+                    10.85693280911073
+                ]
+            },
+            "properties": {
+                "ref": "APD0000842",
+                "cpost": "54700",
+                "region": "Lorraine",
+                "dep": "54",
+                "commune": "Sainte-Geneviève",
+                "text": "Poste de commandement",
+                "author": "Opérateur D ; Brissy, Edouard",
+                "date": "2020/07/09",
+                "evtImg": "/image_road/road_9.png"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    106.76381036639215,
+                    10.85693280911073
+                ]
+            },
+            "properties": {
+                "ref": "APD0000489",
+                "cpost": "51800",
+                "region": "Champagne-Ardenne",
+                "dep": "51",
+                "commune": "La Neuville-au-Pont",
+                "text": "Une rue avec des soldats",
+                "author": "Opérateur D ; Brissy, Edouard",
+                "date": "2020/07/10",
+                "evtImg": "/image_road/road_10.png"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    106.76381036639215,
+                    10.85693280911073
+                ]
+            },
+            "properties": {
+                "ref": "APTH002186",
+                "cpost": "51700",
+                "region": "",
+                "dep": "51",
+                "commune": "Dormans",
+                "text": "Lancement d'un pont suspendu sur la Marne",
+                "author": "Opérateur Théta (code armée, photographe)",
+                "date": "2020/07/11",
+                "evtImg": "/image_road/road_11.png"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    106.76381036639215,
+                    10.85693280911073
+                ]
+            },
+            "properties": {
+                "ref": "APD0000448",
+                "cpost": "55800",
+                "region": "Lorraine",
+                "dep": "55",
+                "commune": "Sommeilles",
+                "text": "Vue d'ensemble",
+                "author": "Opérateur D ; Brissy, Edouard",
+                "date": "2020/07/12",
+                "evtImg": "/image_road/road_12.png"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    106.76381036639215,
+                    10.85693280911073
+                ]
+            },
+            "properties": {
+                "ref": "APD0002182",
+                "cpost": "51800",
+                "region": "Champagne-Ardenne",
+                "dep": "51",
+                "commune": "Sivry-Ante",
+                "text": "Ante : nettoyage des mitrailleuses",
+                "author": "Opérateur D ; Brissy, Edouard",
+                "date": "2020/07/13",
+                "evtImg": "/image_road/road_13.png"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    106.76381036639215,
+                    10.85693280911073
+                ]
+            },
+            "properties": {
+                "ref": "APTH002310",
+                "cpost": "55220",
+                "region": "",
+                "dep": "51",
+                "commune": "Suippes",
+                "text": "Enlèvement des débris après l'explosion du train de munitions",
+                "author": "Opérateur Théta (code armée, photographe)",
+                "date": "2020/07/14",
+                "evtImg": "/image_road/road_14.png"
+            }
+        }
+    ]
+}

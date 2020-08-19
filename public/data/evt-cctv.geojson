@@ -12,6 +12,7 @@
             },
             "properties": {
                 "title": "감시 1구역",
+                "type": "cctv",
                 "evtSubType": "위반 / 지정 차로 위반",
                 "locAddr": "1번 교차로 그룹",
                 "chargeName": "MR.Kim",
@@ -32,6 +33,7 @@
             },
             "properties": {
                 "title": "감시 2구역",
+                "type": "cctv",
                 "evtSubType": "위반 / 지정 차로 위반",
                 "locAddr": "1번 교차로 그룹",
                 "chargeName": "MR.Kim",
@@ -52,6 +54,7 @@
             },
             "properties": {
                 "title": "감시 3구역",
+                "type": "cctv",
                 "evtSubType": "위반 / 지정 차로 위반",
                 "locAddr": "1번 교차로 그룹",
                 "chargeName": "MR.Kim",
@@ -72,6 +75,7 @@
             },
             "properties": {
                 "title": "감시 4구역",
+                "type": "cctv",
                 "evtSubType": "위반 / 지정 차로 위반",
                 "locAddr": "1번 교차로 그룹",
                 "chargeName": "MR.Kim",
@@ -93,6 +97,7 @@
             },
             "properties": {
                 "title": "감시 5구역",
+                "type": "cctv",
                 "evtSubType": "위반 / 지정 차로 위반",
                 "locAddr": "1번 교차로 그룹",
                 "chargeName": "MR.Kim",
